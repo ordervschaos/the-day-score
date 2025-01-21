@@ -44,20 +44,25 @@ export const HabitList = () => {
   const { data: habits, isLoading, error } = useQuery({
     queryKey: ['habits'],
     queryFn: async () => {
-      console.log('Fetching habits...')
-      const { data, error } = await supabase
-        .from('habits')
-        .select('*')
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false })
-      
-      if (error) {
-        console.error('Error fetching habits:', error)
-        throw error
+      console.log('Starting habits fetch...')
+      try {
+        const { data, error } = await supabase
+          .from('habits')
+          .select('*')
+          .eq('is_archived', false)
+          .order('created_at', { ascending: false })
+        
+        if (error) {
+          console.error('Supabase error fetching habits:', error)
+          throw error
+        }
+        
+        console.log('Successfully fetched habits:', data)
+        return data
+      } catch (err) {
+        console.error('Error in queryFn:', err)
+        throw err
       }
-      
-      console.log('Fetched habits:', data)
-      return data
     }
   })
 
@@ -66,6 +71,7 @@ export const HabitList = () => {
   }
 
   if (error) {
+    console.error('React Query error:', error)
     return <div>Error loading habits: {error.message}</div>
   }
 
