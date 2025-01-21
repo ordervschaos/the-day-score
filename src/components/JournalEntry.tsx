@@ -1,6 +1,7 @@
 import { Pencil } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Textarea } from "./ui/textarea"
+import { Button } from "./ui/button"
 
 export const JournalEntry = () => {
   return (
