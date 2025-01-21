@@ -41,18 +41,33 @@ const HabitItem = ({ id, title, points, status, streak, onToggle, index }: Habit
 }
 
 export const HabitList = () => {
-  const { data: habits } = useQuery({
+  const { data: habits, isLoading, error } = useQuery({
     queryKey: ['habits'],
     queryFn: async () => {
+      console.log('Fetching habits...')
       const { data, error } = await supabase
         .from('habits')
         .select('*')
+        .eq('is_archived', false)
         .order('created_at', { ascending: false })
       
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching habits:', error)
+        throw error
+      }
+      
+      console.log('Fetched habits:', data)
       return data
     }
   })
+
+  if (isLoading) {
+    return <div>Loading habits...</div>
+  }
+
+  if (error) {
+    return <div>Error loading habits: {error.message}</div>
+  }
 
   return (
     <Card className="bg-background border-none shadow-none">
