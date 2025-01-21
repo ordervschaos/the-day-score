@@ -199,79 +199,6 @@ export type Database = {
           },
         ]
       }
-      habit_metric_templates: {
-        Row: {
-          habit_id: number | null
-          id: number
-          input_type: string
-          max_value: number | null
-          metric_name: string
-          min_value: number | null
-          owner_id: string
-        }
-        Insert: {
-          habit_id?: number | null
-          id?: number
-          input_type: string
-          max_value?: number | null
-          metric_name: string
-          min_value?: number | null
-          owner_id?: string
-        }
-        Update: {
-          habit_id?: number | null
-          id?: number
-          input_type?: string
-          max_value?: number | null
-          metric_name?: string
-          min_value?: number | null
-          owner_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "habit_metric_templates_habit_id_fkey"
-            columns: ["habit_id"]
-            isOneToOne: false
-            referencedRelation: "habits"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      habit_metrics: {
-        Row: {
-          habit_log_id: string | null
-          id: number
-          metric_name: string
-          metric_value_number: number | null
-          metric_value_text: string | null
-          owner_id: string
-        }
-        Insert: {
-          habit_log_id?: string | null
-          id?: number
-          metric_name: string
-          metric_value_number?: number | null
-          metric_value_text?: string | null
-          owner_id?: string
-        }
-        Update: {
-          habit_log_id?: string | null
-          id?: number
-          metric_name?: string
-          metric_value_number?: number | null
-          metric_value_text?: string | null
-          owner_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "habit_metrics_habit_log_id_fkey"
-            columns: ["habit_log_id"]
-            isOneToOne: false
-            referencedRelation: "habit_logs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       habits: {
         Row: {
           aging_settings: Json | null
@@ -367,38 +294,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "habits"
             referencedColumns: ["id"]
-          },
-        ]
-      }
-      onboarding: {
-        Row: {
-          created_at: string
-          id: number
-          status: string | null
-          steps_completed: Json | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-          status?: string | null
-          steps_completed?: Json | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: number
-          status?: string | null
-          steps_completed?: Json | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "onboarding_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_data"
-            referencedColumns: ["user_id"]
           },
         ]
       }
