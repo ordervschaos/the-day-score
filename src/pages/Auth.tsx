@@ -42,7 +42,6 @@ const Auth = () => {
       
       if (error) {
         if (error.message.includes('rate_limit')) {
-          // Extract the number of seconds from the error message using regex
           const seconds = parseInt(error.message.match(/\d+/)?.[0] || "60");
           setCountdown(seconds);
           toast({
@@ -96,7 +95,9 @@ const Auth = () => {
       <Card>
         <CardHeader>
           <CardTitle>Welcome to KarmaTracker</CardTitle>
-          <CardDescription>Sign in with your email to continue</CardDescription>
+          <CardDescription>
+            {!showOTP ? "Sign in with your email to continue" : "Enter the code sent to your email"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {!showOTP ? (
@@ -118,23 +119,33 @@ const Auth = () => {
               </Button>
             </form>
           ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">Enter the code sent to your email</p>
-              <InputOTP
-                value={otp}
-                onChange={(value) => setOtp(value)}
-                maxLength={6}
-                render={({ slots }) => (
-                  <InputOTPGroup>
-                    {slots.map((slot, idx) => (
-                      <InputOTPSlot key={idx} {...slot} index={idx} />
-                    ))}
-                  </InputOTPGroup>
-                )}
-              />
-              <Button onClick={verifyOTP} className="w-full" disabled={loading || otp.length !== 6}>
-                {loading ? "Verifying..." : "Verify Code"}
-              </Button>
+            <div className="space-y-6">
+              <div className="flex flex-col items-center space-y-4">
+                <InputOTP
+                  value={otp}
+                  onChange={(value) => setOtp(value)}
+                  maxLength={6}
+                  render={({ slots }) => (
+                    <InputOTPGroup className="gap-2">
+                      {slots.map((slot, idx) => (
+                        <InputOTPSlot 
+                          key={idx} 
+                          {...slot} 
+                          index={idx}
+                          className="w-10 h-12 text-lg border-2 rounded-md"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  )}
+                />
+                <Button 
+                  onClick={verifyOTP} 
+                  className="w-full mt-4" 
+                  disabled={loading || otp.length !== 6}
+                >
+                  {loading ? "Verifying..." : "Verify Code"}
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
