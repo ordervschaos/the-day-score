@@ -120,26 +120,28 @@ const Auth = () => {
             </form>
           ) : (
             <div className="flex flex-col items-center justify-center space-y-8">
-              <InputOTP
-                value={otp}
-                onChange={(value) => setOtp(value)}
-                maxLength={6}
-                render={({ slots }) => (
-                  <InputOTPGroup className="gap-4">
-                    {slots.map((slot, idx) => (
-                      <InputOTPSlot 
-                        key={idx} 
-                        {...slot} 
-                        index={idx}
-                        className="w-12 h-14 text-xl font-semibold border-2 rounded-md focus:border-primary focus:ring-2 focus:ring-primary"
-                      />
-                    ))}
-                  </InputOTPGroup>
-                )}
-              />
+              <div className="bg-white p-8 rounded-lg shadow-sm border-2 border-gray-100">
+                <InputOTP
+                  value={otp}
+                  onChange={(value) => setOtp(value)}
+                  maxLength={6}
+                  render={({ slots }) => (
+                    <InputOTPGroup className="gap-4">
+                      {slots.map((slot, idx) => (
+                        <InputOTPSlot 
+                          key={idx} 
+                          {...slot} 
+                          index={idx}
+                          className="w-12 h-14 text-xl font-semibold bg-white border-2 border-gray-300 rounded-md focus:border-primary focus:ring-2 focus:ring-primary hover:border-gray-400"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  )}
+                />
+              </div>
               <Button 
                 onClick={verifyOTP} 
-                className="w-full py-6 text-lg font-semibold bg-gray-500 hover:bg-gray-600" 
+                className="w-full py-6 text-lg font-semibold bg-primary hover:bg-primary/90" 
                 disabled={loading || otp.length !== 6}
               >
                 {loading ? "Verifying..." : "Verify Code"}
