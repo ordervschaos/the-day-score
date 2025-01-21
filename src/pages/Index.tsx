@@ -45,34 +45,6 @@ const Index = () => {
         <DayScore />
         <JournalEntry />
         <HabitList />
-        
-        {habits && (
-          <section className="space-y-4">
-            <h2 className="text-xl font-semibold">Recent Habits</h2>
-            <div className="grid gap-4">
-              {habits.map((habit) => (
-                <div key={habit.id} className="p-4 rounded-lg border bg-card">
-                  <h3 className="font-medium">{habit.name}</h3>
-                  <p className="text-sm text-muted-foreground">{habit.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {journals && (
-          <section className="space-y-4">
-            <h2 className="text-xl font-semibold">Recent Journal Entries</h2>
-            <div className="grid gap-4">
-              {journals.map((entry) => (
-                <div key={entry.id} className="p-4 rounded-lg border bg-card">
-                  <div className="text-sm text-muted-foreground">{entry.date}</div>
-                  <p className="mt-2">{entry.content}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </main>
     </div>
   )
