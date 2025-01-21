@@ -1,4 +1,4 @@
-import { ChevronDown, MoreVertical } from "lucide-react"
+import { ChevronDown, MoreVertical, Plus } from "lucide-react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader } from "./ui/card"
 import {
@@ -9,19 +9,22 @@ import {
 } from "./ui/accordion"
 import { Badge } from "./ui/badge"
 import { Checkbox } from "./ui/checkbox"
+import { useQuery } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
 
 interface HabitItemProps {
   title: string
   points: number
   status?: string
   streak?: number
+  onToggle?: () => void
 }
 
-const HabitItem = ({ title, points, status, streak }: HabitItemProps) => {
+const HabitItem = ({ title, points, status, streak, onToggle }: HabitItemProps) => {
   return (
     <div className="flex items-center space-x-4 py-2">
       <div className="flex items-center space-x-2 flex-1">
-        <Checkbox />
+        <Checkbox onCheckedChange={onToggle} />
         <span>{title}</span>
       </div>
       <div className="flex items-center gap-2">
@@ -46,17 +49,30 @@ const HabitItem = ({ title, points, status, streak }: HabitItemProps) => {
 interface HabitGroupProps {
   title: string
   habits: HabitItemProps[]
+  onAddHabit?: () => void
+  onEditGroup?: () => void
 }
 
-const HabitGroup = ({ title, habits }: HabitGroupProps) => {
+const HabitGroup = ({ title, habits, onAddHabit, onEditGroup }: HabitGroupProps) => {
   return (
     <AccordionItem value={title}>
       <AccordionTrigger className="hover:no-underline">
         <div className="flex items-center justify-between w-full">
           <span>{title}</span>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {
+              e.stopPropagation()
+              onAddHabit?.()
+            }}>
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {
+              e.stopPropagation()
+              onEditGroup?.()
+            }}>
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </AccordionTrigger>
       <AccordionContent>
@@ -71,45 +87,41 @@ const HabitGroup = ({ title, habits }: HabitGroupProps) => {
 }
 
 export const HabitList = () => {
-  const habitGroups = [
-    {
-      title: "Morning",
-      habits: [
-        { title: "Get out of the bed when awake", points: 5 },
-        { title: "10 mins of workout", points: 3, streak: 2 },
-        { title: "Oil pulling after brushing", points: 2 },
-        { title: "No screen for first 1 hour of the day", points: 10, status: "Dead" },
-        { title: "2 mins of yoga", points: 1 },
-        { title: "Write a page about anything", points: 5, streak: 2 },
-        { title: "10 mins of meditation", points: 10, status: "Weakening" },
-        { title: "Review notes for 5 mins", points: 2 },
-      ],
-    },
-    {
-      title: "Workout",
-      habits: [],
-    },
-    {
-      title: "Mental",
-      habits: [],
-    },
-    {
-      title: "Night",
-      habits: [],
-    },
-    {
-      title: "Improve quality of life",
-      habits: [],
-    },
-    {
-      title: "Professional",
-      habits: [],
-    },
-    {
-      title: "Relationships",
-      habits: [],
-    },
-  ]
+  const { data: habitGroups } = useQuery({
+    queryKey: ['habit-groups'],
+    queryFn: async () => {
+      const { data: groups, error } = await supabase
+        .from('habit_groups')
+        .select(`
+          id,
+          title,
+          habit_list_items!inner(
+            id,
+            position,
+            type,
+            habits(
+              id,
+              name,
+              points
+            )
+          )
+        `)
+        .order('created_at', { ascending: true })
+
+      if (error) throw error
+      return groups
+    }
+  })
+
+  const groups = habitGroups?.map(group => ({
+    title: group.title,
+    habits: group.habit_list_items
+      .filter(item => item.type === 'habit' && item.habits)
+      .map(item => ({
+        title: item.habits?.name || '',
+        points: item.habits?.points || 0,
+      }))
+  })) || []
 
   return (
     <Card className="bg-background border-none shadow-none">
@@ -125,8 +137,13 @@ export const HabitList = () => {
       </CardHeader>
       <CardContent>
         <Accordion type="multiple" className="space-y-4">
-          {habitGroups.map((group) => (
-            <HabitGroup key={group.title} {...group} />
+          {groups.map((group) => (
+            <HabitGroup 
+              key={group.title} 
+              {...group} 
+              onAddHabit={() => console.log('Add habit to group')}
+              onEditGroup={() => console.log('Edit group')}
+            />
           ))}
         </Accordion>
         <div className="mt-4 space-y-2">
