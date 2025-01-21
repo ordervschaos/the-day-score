@@ -92,11 +92,11 @@ const Auth = () => {
 
   return (
     <div className="container max-w-md mx-auto mt-20">
-      <Card>
-        <CardHeader>
-          <CardTitle>Welcome to KarmaTracker</CardTitle>
-          <CardDescription>
-            {!showOTP ? "Sign in with your email to continue" : "Enter the code sent to your email"}
+      <Card className="w-full">
+        <CardHeader className="space-y-2 text-center">
+          <CardTitle className="text-3xl font-bold">Welcome to KarmaTracker</CardTitle>
+          <CardDescription className="text-lg">
+            {showOTP ? "Enter the code sent to your email" : "Sign in with your email to continue"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -119,38 +119,36 @@ const Auth = () => {
               </Button>
             </form>
           ) : (
-            <div className="space-y-6">
-              <div className="flex flex-col items-center space-y-4">
-                <InputOTP
-                  value={otp}
-                  onChange={(value) => setOtp(value)}
-                  maxLength={6}
-                  render={({ slots }) => (
-                    <InputOTPGroup className="gap-2">
-                      {slots.map((slot, idx) => (
-                        <InputOTPSlot 
-                          key={idx} 
-                          {...slot} 
-                          index={idx}
-                          className="w-10 h-12 text-lg border-2 rounded-md"
-                        />
-                      ))}
-                    </InputOTPGroup>
-                  )}
-                />
-                <Button 
-                  onClick={verifyOTP} 
-                  className="w-full mt-4" 
-                  disabled={loading || otp.length !== 6}
-                >
-                  {loading ? "Verifying..." : "Verify Code"}
-                </Button>
-              </div>
+            <div className="flex flex-col items-center justify-center space-y-8">
+              <InputOTP
+                value={otp}
+                onChange={(value) => setOtp(value)}
+                maxLength={6}
+                render={({ slots }) => (
+                  <InputOTPGroup className="gap-4">
+                    {slots.map((slot, idx) => (
+                      <InputOTPSlot 
+                        key={idx} 
+                        {...slot} 
+                        index={idx}
+                        className="w-12 h-14 text-xl font-semibold border-2 rounded-md focus:border-primary focus:ring-2 focus:ring-primary"
+                      />
+                    ))}
+                  </InputOTPGroup>
+                )}
+              />
+              <Button 
+                onClick={verifyOTP} 
+                className="w-full py-6 text-lg font-semibold bg-gray-500 hover:bg-gray-600" 
+                disabled={loading || otp.length !== 6}
+              >
+                {loading ? "Verifying..." : "Verify Code"}
+              </Button>
             </div>
           )}
         </CardContent>
         <CardFooter className="justify-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-base text-gray-600">
             We'll email you a verification code to sign in.
           </p>
         </CardFooter>
