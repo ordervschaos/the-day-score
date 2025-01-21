@@ -20,14 +20,14 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin,
+          shouldCreateUser: true,
         },
       });
       if (error) throw error;
       setShowOTP(true);
       toast({
         title: "Check your email",
-        description: "We've sent you a login link and code",
+        description: "We've sent you a verification code",
       });
     } catch (error: any) {
       toast({
@@ -80,7 +80,7 @@ const Auth = () => {
                 required
               />
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Sending..." : "Send Magic Link"}
+                {loading ? "Sending..." : "Send Code"}
               </Button>
             </form>
           ) : (
@@ -106,7 +106,7 @@ const Auth = () => {
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-gray-600">
-            We'll email you a magic link for a password-free sign in.
+            We'll email you a verification code to sign in.
           </p>
         </CardFooter>
       </Card>
