@@ -23,6 +23,14 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (countdown > 0) {
+      toast({
+        title: "Please wait",
+        description: `You can request another code in ${countdown} seconds`,
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -34,6 +42,7 @@ const Auth = () => {
       
       if (error) {
         if (error.message.includes('rate_limit')) {
+          // Extract the number of seconds from the error message using regex
           const seconds = parseInt(error.message.match(/\d+/)?.[0] || "60");
           setCountdown(seconds);
           toast({
@@ -118,7 +127,7 @@ const Auth = () => {
                 render={({ slots }) => (
                   <InputOTPGroup>
                     {slots.map((slot, idx) => (
-                      <InputOTPSlot key={idx} {...slot} index={idx} />
+                      <InputOTPSlot key={idx} {...slot} />
                     ))}
                   </InputOTPGroup>
                 )}
