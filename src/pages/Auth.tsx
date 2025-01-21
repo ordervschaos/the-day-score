@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -120,23 +120,14 @@ const Auth = () => {
             </form>
           ) : (
             <div className="flex flex-col items-center justify-center space-y-8">
-              <div className="bg-white p-8 rounded-lg shadow-sm border-2 border-gray-100">
-                <InputOTP
+              <div className="w-full">
+                <Input
+                  type="text"
                   value={otp}
-                  onChange={(value) => setOtp(value)}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Enter verification code"
                   maxLength={6}
-                  render={({ slots }) => (
-                    <InputOTPGroup className="gap-4">
-                      {slots.map((slot, idx) => (
-                        <InputOTPSlot 
-                          key={idx} 
-                          {...slot} 
-                          index={idx}
-                          className="w-12 h-14 text-xl font-semibold bg-white border-2 border-gray-300 rounded-md focus:border-primary focus:ring-2 focus:ring-primary hover:border-gray-400"
-                        />
-                      ))}
-                    </InputOTPGroup>
-                  )}
+                  className="text-center text-xl font-semibold"
                 />
               </div>
               <Button 
