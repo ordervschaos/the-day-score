@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent } from "./ui/card"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
-import { Check, Plus } from "lucide-react"
+import { Check, Minus, Plus } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 
@@ -14,10 +14,11 @@ interface HabitItemProps {
   streak?: number
   logCount: number
   onLog: () => void
+  onUnlog?: () => void
   index: number
 }
 
-const HabitItem = ({ id, title, points, status, streak, logCount, onLog, index }: HabitItemProps) => {
+const HabitItem = ({ id, title, points, status, streak, logCount, onLog, onUnlog, index }: HabitItemProps) => {
   return (
     <div className="flex items-center space-x-4 py-2 px-2 hover:bg-accent/50 rounded-lg transition-colors">
       <div className="flex items-center space-x-2 flex-1">
@@ -45,11 +46,11 @@ const HabitItem = ({ id, title, points, status, streak, logCount, onLog, index }
         <Button
           variant="ghost"
           size="sm"
-          onClick={onLog}
+          onClick={logCount > 0 ? onUnlog : onLog}
           className="h-7 w-7 p-0"
         >
           {logCount > 0 ? (
-            <Plus className="h-4 w-4" />
+            <Minus className="h-4 w-4" />
           ) : (
             <Check className="h-4 w-4" />
           )}
@@ -124,8 +125,40 @@ export const HabitList = () => {
     }
   })
 
+  const unlogHabitMutation = useMutation({
+    mutationFn: async (habit: any) => {
+      if (!habit.habit_logs?.[0]?.id) throw new Error('No log found to delete')
+      
+      const { error } = await supabase
+        .from('habit_logs')
+        .delete()
+        .eq('id', habit.habit_logs[0].id)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habits'] })
+      toast({
+        title: "Success!",
+        description: "Habit unlogged successfully.",
+      })
+    },
+    onError: (error) => {
+      console.error('Error unlogging habit:', error)
+      toast({
+        title: "Error",
+        description: "Failed to unlog habit. Please try again.",
+        variant: "destructive"
+      })
+    }
+  })
+
   const handleLogHabit = (habit: any) => {
     logHabitMutation.mutate(habit)
+  }
+
+  const handleUnlogHabit = (habit: any) => {
+    unlogHabitMutation.mutate(habit)
   }
 
   if (isLoading) {
@@ -149,6 +182,7 @@ export const HabitList = () => {
               points={habit.points}
               logCount={habit.habit_logs?.length || 0}
               onLog={() => handleLogHabit(habit)}
+              onUnlog={() => handleUnlogHabit(habit)}
               index={index}
             />
           ))}
