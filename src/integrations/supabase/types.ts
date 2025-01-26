@@ -81,6 +81,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: number
+          is_collapsed: boolean | null
           position: number | null
           title: string
           user_id: string
@@ -88,6 +89,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: number
+          is_collapsed?: boolean | null
           position?: number | null
           title: string
           user_id?: string
@@ -95,6 +97,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: number
+          is_collapsed?: boolean | null
           position?: number | null
           title?: string
           user_id?: string

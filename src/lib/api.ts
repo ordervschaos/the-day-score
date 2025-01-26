@@ -4,7 +4,6 @@ import { Database } from "@/integrations/supabase/types"
 type Habit = Database["public"]["Tables"]["habits"]["Row"]
 type HabitLog = Database["public"]["Tables"]["habit_logs"]["Row"]
 type HabitGroup = Database["public"]["Tables"]["habit_groups"]["Row"]
-type HabitListItem = Database["public"]["Tables"]["habit_list_items"]["Row"]
 type Journal = Database["public"]["Tables"]["journal"]["Row"]
 type Notebook = Database["public"]["Tables"]["notebooks"]["Row"]
 type Page = Database["public"]["Tables"]["pages"]["Row"]
@@ -14,16 +13,25 @@ export const fetchHabits = async () => {
   const { data, error } = await supabase
     .from("habits")
     .select("*")
-    .order("created_at", { ascending: false })
+    .order("position", { ascending: true })
   
   if (error) throw error
   return data
 }
 
 export const addHabit = async (habit: Pick<Habit, "name" | "points">) => {
+  // Get the current max position
+  const { data: habits } = await supabase
+    .from("habits")
+    .select("position")
+    .order("position", { ascending: false })
+    .limit(1)
+
+  const nextPosition = habits && habits.length > 0 ? (habits[0].position || 0) + 1 : 0
+
   const { data, error } = await supabase
     .from("habits")
-    .insert([habit])
+    .insert([{ ...habit, position: nextPosition }])
     .select()
     .single()
 
@@ -127,48 +135,46 @@ export const addJournalEntry = async (entry: Pick<Journal, "content" | "date">) 
 
 // Habit Groups
 export const createHabitGroup = async (title: string) => {
-  const { data: group, error: groupError } = await supabase
+  // Get the current max position
+  const { data: groups } = await supabase
     .from("habit_groups")
-    .insert([{ title }])
-    .select()
-    .single()
+    .select("position")
+    .order("position", { ascending: false })
+    .limit(1)
 
-  if (groupError) throw groupError
+  const nextPosition = groups && groups.length > 0 ? (groups[0].position || 0) + 1 : 0
 
-  const { data: listItem, error: listItemError } = await supabase
-    .from("habit_list_items")
-    .insert([{
-      type: "group",
-      group_id: group.id,
-      position: 999999
+  const { data: group, error } = await supabase
+    .from("habit_groups")
+    .insert([{ 
+      title,
+      position: nextPosition
     }])
     .select()
     .single()
 
-  if (listItemError) throw listItemError
-
-  return {
-    ...listItem,
-    title: group.title
-  }
+  if (error) throw error
+  return group
 }
 
-export const deleteHabitGroup = async (groupId: number, listItemId: number) => {
-  const { error: listItemError } = await supabase
-    .from("habit_list_items")
-    .delete()
-    .eq("id", listItemId)
+export const deleteHabitGroup = async (groupId: number) => {
+  // First update all habits in this group to have no group
+  const { error: updateError } = await supabase
+    .from("habits")
+    .update({ group_id: null })
+    .eq("group_id", groupId)
 
-  if (listItemError) throw listItemError
+  if (updateError) throw updateError
 
-  const { error: groupError } = await supabase
+  // Then delete the group
+  const { error: deleteError } = await supabase
     .from("habit_groups")
     .delete()
     .eq("id", groupId)
 
-  if (groupError) throw groupError
+  if (deleteError) throw deleteError
 
-  return { groupId, listItemId }
+  return groupId
 }
 
 // Notebooks and Pages
