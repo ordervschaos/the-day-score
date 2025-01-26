@@ -71,7 +71,7 @@ export const HabitList = () => {
       try {
         const { data, error } = await supabase
           .from('habits')
-          .select('*, habit_logs!inner(*)')
+          .select('*, habit_logs(*)')
           .eq('is_archived', false)
           .eq('habit_logs.date', today)
           .order('created_at', { ascending: false })
