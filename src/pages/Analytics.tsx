@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, addDays, startOfMonth, endOfMonth, getWeek, getYear, startOfDay } from "date-fns"
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, addDays, startOfMonth, endOfMonth, getWeek, getYear, startOfDay, subMonths } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -18,8 +18,8 @@ const Analytics = () => {
     from: Date
     to?: Date
   }>({
-    from: startOfWeek(new Date()),
-    to: endOfWeek(new Date())
+    from: subMonths(new Date(), 1), // Default to showing last month
+    to: new Date()
   })
 
   const { data: habits } = useQuery({
@@ -209,6 +209,12 @@ const Analytics = () => {
               selected={dateRange}
               onSelect={(range) => setDateRange(range || { from: new Date() })}
               numberOfMonths={2}
+              disabled={(date) => {
+                // Disable dates more than 12 months in the past or future
+                const twelveMonthsAgo = subMonths(new Date(), 12)
+                const twelveMonthsFromNow = addDays(subMonths(new Date(), -12), -1)
+                return date < twelveMonthsAgo || date > twelveMonthsFromNow
+              }}
             />
           </PopoverContent>
         </Popover>
@@ -216,21 +222,29 @@ const Analytics = () => {
 
       <Card>
         <CardContent className="pt-6">
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={habitLogs}>
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={formatXAxis}
-                />
-                <YAxis />
-                <Tooltip
-                  labelFormatter={formatTooltipLabel}
-                  formatter={(value) => [`${value} points`, 'Points']}
-                />
-                <Bar dataKey="points" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-[400px] w-full overflow-x-auto">
+            <div className="min-w-[800px] h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={habitLogs}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={formatXAxis}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis />
+                  <Tooltip
+                    labelFormatter={formatTooltipLabel}
+                    formatter={(value) => [`${value} points`, 'Points']}
+                  />
+                  <Bar dataKey="points" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </CardContent>
       </Card>
