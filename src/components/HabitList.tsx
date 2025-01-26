@@ -170,6 +170,7 @@ export const HabitList = () => {
               >
                 {groups?.map((group, index) => (
                   <Draggable 
+                  {`group-${group.id}`}
                     key={group.id} 
                     draggableId={`group-${group.id}`} 
                     index={index}
