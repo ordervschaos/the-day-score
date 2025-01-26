@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Check, Minus } from "lucide-react"
+import { Check, Minus, Settings } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 interface HabitItemProps {
   id: number
@@ -15,14 +16,17 @@ interface HabitItemProps {
 }
 
 export const HabitItem = ({ 
+  id,
   title, 
   points, 
   status, 
   streak, 
   logCount, 
   onLog, 
-  onUnlog 
+  onUnlog
 }: HabitItemProps) => {
+  const navigate = useNavigate()
+  
   return (
     <div className="flex items-center space-x-4 py-2 px-2 hover:bg-accent/50 rounded-lg transition-colors">
       <div className="flex items-center space-x-2 flex-1">
@@ -58,6 +62,14 @@ export const HabitItem = ({
           ) : (
             <Check className="h-4 w-4" />
           )}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/habits/${id}`)}
+          className="h-7 w-7 p-0"
+        >
+          <Settings className="h-4 w-4" />
         </Button>
       </div>
     </div>
