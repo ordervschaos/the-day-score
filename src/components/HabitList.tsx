@@ -168,9 +168,6 @@ export const HabitList = () => {
         .eq('id', id)
 
       if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
     }
   })
 
@@ -340,9 +337,25 @@ export const HabitList = () => {
     const [reorderedItem] = items.splice(result.source.index, 1)
     items.splice(result.destination.index, 0, reorderedItem)
 
-    // Update positions
+    // Optimistically update the cache
+    queryClient.setQueryData(['habit-list-items'], items)
+
+    // Update positions in the background
     items.forEach((item, index) => {
-      updatePositionMutation.mutate({ id: item.id, position: index })
+      updatePositionMutation.mutate({ 
+        id: item.id, 
+        position: index 
+      }, {
+        onError: () => {
+          // Revert the cache on error
+          queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
+          toast({
+            title: "Error",
+            description: "Failed to update positions. Please try again.",
+            variant: "destructive"
+          })
+        }
+      })
     })
   }
 
