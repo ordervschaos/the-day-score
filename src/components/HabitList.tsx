@@ -95,15 +95,7 @@ export const HabitList = () => {
 
       try {
         // Optimistically update the cache
-        const optimisticGroups = groups.map(group => {
-          const update = updates.find(u => u.id === group.id)
-          if (update) {
-            return { ...group, position: update.position }
-          }
-          return group
-        })
-
-        queryClient.setQueryData(['habit-groups'], optimisticGroups)
+        queryClient.setQueryData(['habit-groups'], reorderedGroups)
 
         // Update the database
         for (const update of updates) {
@@ -112,6 +104,9 @@ export const HabitList = () => {
             .update({ position: update.position })
             .eq('id', update.id)
         }
+
+        // Invalidate and refetch to ensure consistency
+        queryClient.invalidateQueries({ queryKey: ['habit-groups'] })
       } catch (error) {
         console.error('Error updating group positions:', error)
         toast({
