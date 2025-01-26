@@ -68,12 +68,9 @@ export const HabitList = () => {
       ? null 
       : parseInt(result.source.droppableId.replace('group-', ''))
     
-    // If dropping into the groups droppable, find the actual group
     const destinationGroupId = result.destination.droppableId === 'ungrouped'
       ? null
-      : result.destination.droppableId === 'groups'
-        ? groups[result.destination.index].id
-        : parseInt(result.destination.droppableId.replace('group-', ''))
+      : parseInt(result.destination.droppableId.replace('group-', ''))
 
     console.log('Moving habit:', {
       habitId,
@@ -83,37 +80,46 @@ export const HabitList = () => {
       destinationIndex: result.destination.index
     })
 
-    if (result.destination.droppableId === 'groups') {
-      // Handle dropping a habit onto a group
-      const targetGroup = groups[result.destination.index]
-      
+    // Get habits in the source group
+    const sourceHabits = habits.filter((h: any) => h.group_id === sourceGroupId)
+    
+    // Get habits in the destination group
+    const destinationHabits = sourceGroupId === destinationGroupId
+      ? sourceHabits
+      : habits.filter((h: any) => h.group_id === destinationGroupId)
+
+    // Handle reordering within the same group
+    if (sourceGroupId === destinationGroupId) {
+      const reorderedHabits = Array.from(destinationHabits)
+      const [movedHabit] = reorderedHabits.splice(result.source.index, 1)
+      reorderedHabits.splice(result.destination.index, 0, movedHabit)
+
+      // Update positions for all habits in the group
+      const updates = reorderedHabits.map((habit: any, index: number) => ({
+        id: habit.id,
+        position: index
+      }))
+
       // Optimistically update the cache
       const updatedHabits = habits.map((habit: any) => {
-        if (habit.id === habitId) {
-          return { ...habit, group_id: targetGroup.id }
+        const update = updates.find((u: any) => u.id === habit.id)
+        if (update) {
+          return { ...habit, position: update.position }
         }
         return habit
       })
       queryClient.setQueryData(['habits'], updatedHabits)
 
-      // Update the habit's group in the database
-      const { error } = await supabase
-        .from('habits')
-        .update({ group_id: targetGroup.id })
-        .eq('id', habitId)
-
-      if (error) {
-        console.error('Error moving habit to group:', error)
-        toast({
-          title: "Error",
-          description: "Failed to move habit to group. Please try again.",
-          variant: "destructive"
+      // Update positions in the database
+      for (const update of updates) {
+        updatePositionMutation.mutate({
+          type: 'habit',
+          id: update.id,
+          position: update.position
         })
-        // Revert the optimistic update
-        queryClient.invalidateQueries({ queryKey: ['habits'] })
       }
-    } else if (sourceGroupId !== destinationGroupId) {
-      // Handle moving between groups or ungrouped
+    } else {
+      // Handle moving between groups
       const updatedHabits = habits.map((habit: any) => {
         if (habit.id === habitId) {
           return { ...habit, group_id: destinationGroupId }
@@ -136,21 +142,6 @@ export const HabitList = () => {
         })
         queryClient.invalidateQueries({ queryKey: ['habits'] })
       }
-    } else {
-      // Handle reordering within the same group
-      const items = Array.from(habits)
-      const [reorderedItem] = items.splice(result.source.index, 1)
-      items.splice(result.destination.index, 0, reorderedItem)
-
-      queryClient.setQueryData(['habits'], items)
-
-      items.forEach((item, index) => {
-        updatePositionMutation.mutate({ 
-          type: 'habit',
-          id: item.id, 
-          position: index 
-        })
-      })
     }
   }
 
@@ -183,7 +174,7 @@ export const HabitList = () => {
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="groups">
+          <Droppable droppableId="groups" type="group">
             {(provided) => (
               <div 
                 {...provided.droppableProps}
