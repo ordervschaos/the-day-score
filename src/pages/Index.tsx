@@ -5,8 +5,10 @@ import { UserMenu } from "@/components/UserMenu"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { BarChart } from "lucide-react"
 
 const Index = () => {
   const navigate = useNavigate()
@@ -66,6 +68,11 @@ const Index = () => {
         <div className="container mx-auto py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/analytics">
+                <BarChart className="h-5 w-5" />
+              </Link>
+            </Button>
             {user && (
               <Avatar>
                 <AvatarFallback>
