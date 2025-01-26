@@ -63,21 +63,31 @@ export const HabitList = () => {
     console.log('Drag end result:', result)
     if (!result.destination || !habits || !groups) return
 
-    const habitId = parseInt(result.draggableId.replace('habit-', ''))
-    const sourceGroupId = result.source.droppableId === 'ungrouped' 
+    const { draggableId, source, destination } = result
+
+    // Early return if dropped in the same spot
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return
+    }
+
+    const habitId = parseInt(draggableId.replace('habit-', ''))
+    const sourceGroupId = source.droppableId === 'ungrouped' 
       ? null 
-      : parseInt(result.source.droppableId.replace('group-', ''))
+      : parseInt(source.droppableId.replace('group-', ''))
     
-    const destinationGroupId = result.destination.droppableId === 'ungrouped'
+    const destinationGroupId = destination.droppableId === 'ungrouped'
       ? null
-      : parseInt(result.destination.droppableId.replace('group-', ''))
+      : parseInt(destination.droppableId.replace('group-', ''))
 
     console.log('Moving habit:', {
       habitId,
       sourceGroupId,
       destinationGroupId,
-      sourceIndex: result.source.index,
-      destinationIndex: result.destination.index
+      sourceIndex: source.index,
+      destinationIndex: destination.index
     })
 
     // Get habits in the source group
@@ -94,60 +104,60 @@ export const HabitList = () => {
 
     if (!movedHabit) return
 
-    // Remove habit from its current position
-    if (sourceGroupId !== null) {
-      sourceHabits.forEach((habit: any, index: number) => {
-        if (index >= result.source.index) {
-          const habitToUpdate = updatedHabits.find(h => h.id === habit.id)
-          if (habitToUpdate) {
-            habitToUpdate.position = index > result.source.index ? index - 1 : index
-          }
-        }
-      })
-    }
-
-    // Insert habit at new position
-    movedHabit.position = result.destination.index
-    movedHabit.group_id = destinationGroupId
-
-    // Update positions of habits in destination group
-    if (destinationGroupId !== null) {
-      destinationHabits.forEach((habit: any, index: number) => {
-        if (index >= result.destination.index && habit.id !== habitId) {
-          const habitToUpdate = updatedHabits.find(h => h.id === habit.id)
-          if (habitToUpdate) {
-            habitToUpdate.position = index + 1
-          }
-        }
-      })
-    }
-
-    // Optimistically update the cache
-    queryClient.setQueryData(['habits'], updatedHabits)
-
-    // Update the database
     try {
-      // First update the moved habit's group and position
-      await supabase
-        .from('habits')
-        .update({ 
-          group_id: destinationGroupId,
-          position: result.destination.index 
+      // Update the moved habit's group and position
+      const updates = [{
+        id: habitId,
+        group_id: destinationGroupId,
+        position: destination.index
+      }]
+
+      // Update positions of other habits in the source group
+      if (sourceGroupId !== null) {
+        sourceHabits.forEach((habit: any, index: number) => {
+          if (habit.id !== habitId && index >= source.index) {
+            updates.push({
+              id: habit.id,
+              position: index - 1
+            })
+          }
         })
-        .eq('id', habitId)
+      }
 
-      // Then update positions of other affected habits
-      const promises = updatedHabits
-        .filter(h => h.id !== habitId && 
-          (h.group_id === sourceGroupId || h.group_id === destinationGroupId))
-        .map(habit => 
-          supabase
-            .from('habits')
-            .update({ position: habit.position })
-            .eq('id', habit.id)
-        )
+      // Update positions of habits in destination group
+      if (destinationGroupId !== null) {
+        destinationHabits.forEach((habit: any, index: number) => {
+          if (habit.id !== habitId && index >= destination.index) {
+            updates.push({
+              id: habit.id,
+              position: index + 1
+            })
+          }
+        })
+      }
 
-      await Promise.all(promises)
+      // Optimistically update the cache
+      const optimisticHabits = habits.map(habit => {
+        const update = updates.find(u => u.id === habit.id)
+        if (update) {
+          return { ...habit, ...update }
+        }
+        return habit
+      })
+
+      queryClient.setQueryData(['habits'], optimisticHabits)
+
+      // Update the database
+      for (const update of updates) {
+        await supabase
+          .from('habits')
+          .update({
+            group_id: update.group_id,
+            position: update.position
+          })
+          .eq('id', update.id)
+      }
+
     } catch (error) {
       console.error('Error updating positions:', error)
       toast({
@@ -189,93 +199,24 @@ export const HabitList = () => {
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="groups" type="group">
-            {(provided) => (
-              <div 
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-1"
-              >
-                {groups?.map((group, index) => (
-                  <Draggable 
-                    key={group.id} 
-                    draggableId={`group-${group.id}`} 
-                    index={index}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <Group
-                          id={group.id}
-                          title={group.title}
-                          isCollapsed={collapsedGroups[group.id]}
-                          onToggleCollapse={() => toggleGroup(group.id)}
+          <div className="space-y-1">
+            {groups?.map((group, index) => (
+              <div key={group.id}>
+                <Group
+                  id={group.id}
+                  title={group.title}
+                  isCollapsed={collapsedGroups[group.id]}
+                  onToggleCollapse={() => toggleGroup(group.id)}
+                >
+                  {!collapsedGroups[group.id] && (
+                    <Droppable droppableId={`group-${group.id}`} type="habit">
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
                         >
-                          <Droppable droppableId={`group-${group.id}`} type="habit">
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                              >
-                                {habits
-                                  ?.filter(habit => habit.group_id === group.id)
-                                  .sort((a, b) => (a.position || 0) - (b.position || 0))
-                                  .map((habit, index) => (
-                                    <Draggable
-                                      key={habit.id}
-                                      draggableId={`habit-${habit.id}`}
-                                      index={index}
-                                    >
-                                      {(provided) => (
-                                        <div
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
-                                        >
-                                          <HabitItem
-                                            id={habit.id}
-                                            title={habit.name}
-                                            points={habit.points}
-                                            logCount={habit.habit_logs?.filter((log: any) => 
-                                              log.date === today && log.status === 'completed'
-                                            ).length || 0}
-                                            onLog={() => logHabitMutation.mutate(habit)}
-                                            onUnlog={() => unlogHabitMutation.mutate(habit)}
-                                            index={index}
-                                          />
-                                        </div>
-                                      )}
-                                    </Draggable>
-                                  ))}
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                        </Group>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-
-                {/* Ungrouped habits section */}
-                <Droppable droppableId="ungrouped" type="habit">
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                    >
-                      {ungroupedHabits.length > 0 && (
-                        <Group
-                          id={-1}
-                          title="Ungrouped"
-                          isCollapsed={collapsedGroups[-1]}
-                          onToggleCollapse={() => toggleGroup(-1)}
-                        >
-                          {ungroupedHabits
+                          {habits
+                            ?.filter(habit => habit.group_id === group.id)
                             .sort((a, b) => (a.position || 0) - (b.position || 0))
                             .map((habit, index) => (
                               <Draggable
@@ -305,14 +246,66 @@ export const HabitList = () => {
                               </Draggable>
                             ))}
                           {provided.placeholder}
-                        </Group>
+                        </div>
                       )}
-                    </div>
+                    </Droppable>
                   )}
-                </Droppable>
+                </Group>
               </div>
+            ))}
+
+            {/* Ungrouped habits section */}
+            {ungroupedHabits.length > 0 && (
+              <Group
+                id={-1}
+                title="Ungrouped"
+                isCollapsed={collapsedGroups[-1]}
+                onToggleCollapse={() => toggleGroup(-1)}
+              >
+                {!collapsedGroups[-1] && (
+                  <Droppable droppableId="ungrouped" type="habit">
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                      >
+                        {ungroupedHabits
+                          .sort((a, b) => (a.position || 0) - (b.position || 0))
+                          .map((habit, index) => (
+                            <Draggable
+                              key={habit.id}
+                              draggableId={`habit-${habit.id}`}
+                              index={index}
+                            >
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                >
+                                  <HabitItem
+                                    id={habit.id}
+                                    title={habit.name}
+                                    points={habit.points}
+                                    logCount={habit.habit_logs?.filter((log: any) => 
+                                      log.date === today && log.status === 'completed'
+                                    ).length || 0}
+                                    onLog={() => logHabitMutation.mutate(habit)}
+                                    onUnlog={() => unlogHabitMutation.mutate(habit)}
+                                    index={index}
+                                  />
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                )}
+              </Group>
             )}
-          </Droppable>
+          </div>
         </DragDropContext>
       </CardContent>
     </Card>
