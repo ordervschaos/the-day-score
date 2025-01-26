@@ -18,45 +18,40 @@ export const HabitList = () => {
   const [isNewHabitOpen, setIsNewHabitOpen] = useState(false)
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false)
 
-  const { data: listItems, isLoading, error } = useQuery({
-    queryKey: ['habit-list-items'],
+  const { data: groups, isLoading: isLoadingGroups } = useQuery({
+    queryKey: ['habit-groups'],
     queryFn: async () => {
-      console.log('Fetching habit list items...')
-      try {
-        const { data: items, error: itemsError } = await supabase
-          .from('habit_list_items')
-          .select(`
+      console.log('Fetching habit groups...')
+      const { data, error } = await supabase
+        .from('habit_groups')
+        .select('*')
+        .order('position', { ascending: true })
+      
+      if (error) throw error
+      console.log('Successfully fetched groups:', data)
+      return data
+    }
+  })
+
+  const { data: habits, isLoading: isLoadingHabits } = useQuery({
+    queryKey: ['habits'],
+    queryFn: async () => {
+      console.log('Fetching habits...')
+      const { data, error } = await supabase
+        .from('habits')
+        .select(`
+          *,
+          habit_logs (
             id,
-            position,
-            type,
-            habit_id,
-            group_id,
-            is_collapsed,
-            habits (
-              id,
-              name,
-              points,
-              habit_logs (
-                id,
-                date,
-                status
-              )
-            ),
-            habit_groups (
-              id,
-              title
-            )
-          `)
-          .order('position', { ascending: true })
-        
-        if (itemsError) throw itemsError
-        
-        console.log('Successfully fetched list items:', items)
-        return items
-      } catch (err) {
-        console.error('Error in queryFn:', err)
-        throw err
-      }
+            date,
+            status
+          )
+        `)
+        .order('position', { ascending: true })
+      
+      if (error) throw error
+      console.log('Successfully fetched habits:', data)
+      return data
     }
   })
 
@@ -65,32 +60,44 @@ export const HabitList = () => {
   const unlogHabitMutation = useUnlogHabit()
 
   const handleDragEnd = (result: any) => {
-    if (!result.destination || !listItems) return
+    if (!result.destination || !habits || !groups) return
 
-    const items = Array.from(listItems)
-    const [reorderedItem] = items.splice(result.source.index, 1)
-    items.splice(result.destination.index, 0, reorderedItem)
+    const sourceType = result.source.droppableId === 'groups' ? 'group' : 'habit'
+    const destinationType = result.destination.droppableId === 'groups' ? 'group' : 'habit'
 
-    // Optimistically update the cache
-    queryClient.setQueryData(['habit-list-items'], items)
+    if (sourceType === 'group' && destinationType === 'group') {
+      const items = Array.from(groups)
+      const [reorderedItem] = items.splice(result.source.index, 1)
+      items.splice(result.destination.index, 0, reorderedItem)
 
-    // Update positions in the background
-    items.forEach((item, index) => {
-      updatePositionMutation.mutate({ 
-        id: item.id, 
-        position: index 
-      }, {
-        onError: () => {
-          // Revert the cache on error
-          queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
-          toast({
-            title: "Error",
-            description: "Failed to update positions. Please try again.",
-            variant: "destructive"
-          })
-        }
+      // Optimistically update the cache
+      queryClient.setQueryData(['habit-groups'], items)
+
+      // Update positions in the background
+      items.forEach((item, index) => {
+        updatePositionMutation.mutate({ 
+          type: 'group',
+          id: item.id, 
+          position: index 
+        })
       })
-    })
+    } else if (sourceType === 'habit' && destinationType === 'habit') {
+      const items = Array.from(habits)
+      const [reorderedItem] = items.splice(result.source.index, 1)
+      items.splice(result.destination.index, 0, reorderedItem)
+
+      // Optimistically update the cache
+      queryClient.setQueryData(['habits'], items)
+
+      // Update positions in the background
+      items.forEach((item, index) => {
+        updatePositionMutation.mutate({ 
+          type: 'habit',
+          id: item.id, 
+          position: index 
+        })
+      })
+    }
   }
 
   const toggleGroup = (groupId: number) => {
@@ -100,13 +107,8 @@ export const HabitList = () => {
     }))
   }
 
-  if (isLoading) {
+  if (isLoadingGroups || isLoadingHabits) {
     return <div>Loading habits...</div>
-  }
-
-  if (error) {
-    console.error('React Query error:', error)
-    return <div>Error loading habits: {error.message}</div>
   }
 
   return (
@@ -124,17 +126,17 @@ export const HabitList = () => {
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="habits">
+          <Droppable droppableId="groups">
             {(provided) => (
               <div 
                 {...provided.droppableProps}
                 ref={provided.innerRef}
                 className="space-y-1"
               >
-                {listItems?.map((item: any, index: number) => (
+                {groups?.map((group, index) => (
                   <Draggable 
-                    key={item.id} 
-                    draggableId={item.id.toString()} 
+                    key={group.id} 
+                    draggableId={`group-${group.id}`} 
                     index={index}
                   >
                     {(provided) => (
@@ -143,46 +145,29 @@ export const HabitList = () => {
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                       >
-                        {item.type === 'group' && item.habit_groups ? (
-                          <Group
-                            id={item.habit_groups.id}
-                            title={item.habit_groups.title}
-                            isCollapsed={collapsedGroups[item.habit_groups.id]}
-                            onToggleCollapse={() => toggleGroup(item.habit_groups.id)}
-                          >
-                            {listItems
-                              .filter((habitItem: any) => 
-                                habitItem.type === 'habit' && 
-                                habitItem.group_id === item.habit_groups.id
-                              )
-                              .map((habitItem: any) => (
-                                <HabitItem
-                                  key={habitItem.habits.id}
-                                  id={habitItem.habits.id}
-                                  title={habitItem.habits.name}
-                                  points={habitItem.habits.points}
-                                  logCount={habitItem.habits.habit_logs?.filter((log: any) => 
-                                    log.date === today && log.status === 'completed'
-                                  ).length || 0}
-                                  onLog={() => logHabitMutation.mutate(habitItem.habits)}
-                                  onUnlog={() => unlogHabitMutation.mutate(habitItem.habits)}
-                                  index={index}
-                                />
-                              ))}
-                          </Group>
-                        ) : item.type === 'habit' && item.habits ? (
-                          <HabitItem
-                            id={item.habits.id}
-                            title={item.habits.name}
-                            points={item.habits.points}
-                            logCount={item.habits.habit_logs?.filter((log: any) => 
-                              log.date === today && log.status === 'completed'
-                            ).length || 0}
-                            onLog={() => logHabitMutation.mutate(item.habits)}
-                            onUnlog={() => unlogHabitMutation.mutate(item.habits)}
-                            index={index}
-                          />
-                        ) : null}
+                        <Group
+                          id={group.id}
+                          title={group.title}
+                          isCollapsed={collapsedGroups[group.id]}
+                          onToggleCollapse={() => toggleGroup(group.id)}
+                        >
+                          {habits
+                            ?.filter(habit => habit.group_id === group.id)
+                            .map((habit) => (
+                              <HabitItem
+                                key={habit.id}
+                                id={habit.id}
+                                title={habit.name}
+                                points={habit.points}
+                                logCount={habit.habit_logs?.filter((log: any) => 
+                                  log.date === today && log.status === 'completed'
+                                ).length || 0}
+                                onLog={() => logHabitMutation.mutate(habit)}
+                                onUnlog={() => unlogHabitMutation.mutate(habit)}
+                                index={index}
+                              />
+                            ))}
+                        </Group>
                       </div>
                     )}
                   </Draggable>

@@ -8,39 +8,30 @@ export const useCreateHabit = () => {
 
   return useMutation({
     mutationFn: async (values: { name: string, points: number }) => {
-      // First create the habit
-      const { data: habit, error: habitError } = await supabase
+      // Get the current max position
+      const { data: habits } = await supabase
+        .from('habits')
+        .select('position')
+        .order('position', { ascending: false })
+        .limit(1)
+
+      const nextPosition = habits && habits.length > 0 ? (habits[0].position || 0) + 1 : 0
+
+      const { data: habit, error } = await supabase
         .from('habits')
         .insert([{
           name: values.name,
-          points: values.points
+          points: values.points,
+          position: nextPosition
         }])
         .select()
         .single()
 
-      if (habitError) throw habitError
-
-      // Then create the list item
-      const { data: listItems } = await supabase
-        .from('habit_list_items')
-        .select('*')
-
-      const { data: listItem, error: listItemError } = await supabase
-        .from('habit_list_items')
-        .insert([{
-          type: 'habit',
-          habit_id: habit.id,
-          position: listItems ? listItems.length : 0
-        }])
-        .select()
-        .single()
-
-      if (listItemError) throw listItemError
-
-      return { habit, listItem }
+      if (error) throw error
+      return habit
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
+      queryClient.invalidateQueries({ queryKey: ['habits'] })
       toast({
         title: "Success!",
         description: "Habit created successfully.",
@@ -63,38 +54,29 @@ export const useCreateFolder = () => {
 
   return useMutation({
     mutationFn: async (values: { title: string }) => {
-      // First create the group
-      const { data: group, error: groupError } = await supabase
+      // Get the current max position
+      const { data: groups } = await supabase
+        .from('habit_groups')
+        .select('position')
+        .order('position', { ascending: false })
+        .limit(1)
+
+      const nextPosition = groups && groups.length > 0 ? (groups[0].position || 0) + 1 : 0
+
+      const { data: group, error } = await supabase
         .from('habit_groups')
         .insert([{
-          title: values.title
+          title: values.title,
+          position: nextPosition
         }])
         .select()
         .single()
 
-      if (groupError) throw groupError
-
-      // Then create the list item
-      const { data: listItems } = await supabase
-        .from('habit_list_items')
-        .select('*')
-
-      const { data: listItem, error: listItemError } = await supabase
-        .from('habit_list_items')
-        .insert([{
-          type: 'group',
-          group_id: group.id,
-          position: listItems ? listItems.length : 0
-        }])
-        .select()
-        .single()
-
-      if (listItemError) throw listItemError
-
-      return { group, listItem }
+      if (error) throw error
+      return group
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
+      queryClient.invalidateQueries({ queryKey: ['habit-groups'] })
       toast({
         title: "Success!",
         description: "Folder created successfully.",
@@ -134,7 +116,7 @@ export const useLogHabit = () => {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
+      queryClient.invalidateQueries({ queryKey: ['habits'] })
       queryClient.invalidateQueries({ queryKey: ['habit-logs', today] })
       toast({
         title: "Success!",
@@ -169,7 +151,7 @@ export const useUnlogHabit = () => {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
+      queryClient.invalidateQueries({ queryKey: ['habits'] })
       queryClient.invalidateQueries({ queryKey: ['habit-logs', today] })
       toast({
         title: "Success!",
@@ -189,9 +171,10 @@ export const useUnlogHabit = () => {
 
 export const useUpdatePosition = () => {
   return useMutation({
-    mutationFn: async ({ id, position }: { id: number, position: number }) => {
+    mutationFn: async ({ type, id, position }: { type: 'habit' | 'group', id: number, position: number }) => {
+      const table = type === 'habit' ? 'habits' : 'habit_groups'
       const { error } = await supabase
-        .from('habit_list_items')
+        .from(table)
         .update({ position })
         .eq('id', id)
 

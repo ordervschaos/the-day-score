@@ -81,70 +81,25 @@ export type Database = {
         Row: {
           created_at: string | null
           id: number
+          position: number | null
           title: string
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: number
+          position?: number | null
           title: string
           user_id?: string
         }
         Update: {
           created_at?: string | null
           id?: number
+          position?: number | null
           title?: string
           user_id?: string
         }
         Relationships: []
-      }
-      habit_list_items: {
-        Row: {
-          created_at: string | null
-          group_id: number | null
-          habit_id: number | null
-          id: number
-          is_collapsed: boolean | null
-          position: number
-          type: Database["public"]["Enums"]["habit_list_item_type"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          group_id?: number | null
-          habit_id?: number | null
-          id?: number
-          is_collapsed?: boolean | null
-          position: number
-          type: Database["public"]["Enums"]["habit_list_item_type"]
-          user_id?: string
-        }
-        Update: {
-          created_at?: string | null
-          group_id?: number | null
-          habit_id?: number | null
-          id?: number
-          is_collapsed?: boolean | null
-          position?: number
-          type?: Database["public"]["Enums"]["habit_list_item_type"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "habit_list_items_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "habit_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "habit_list_items_habit_id_fkey"
-            columns: ["habit_id"]
-            isOneToOne: false
-            referencedRelation: "habits"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       habit_logs: {
         Row: {
@@ -204,6 +159,7 @@ export type Database = {
           aging_settings: Json | null
           created_at: string | null
           description: string | null
+          group_id: number | null
           id: number
           is_archived: boolean | null
           name: string
@@ -211,6 +167,7 @@ export type Database = {
           owner_id: string
           planned_times: Json | null
           points: number
+          position: number | null
           tags: string[] | null
           temp_id: number | null
           updated_at: string | null
@@ -219,6 +176,7 @@ export type Database = {
           aging_settings?: Json | null
           created_at?: string | null
           description?: string | null
+          group_id?: number | null
           id?: never
           is_archived?: boolean | null
           name: string
@@ -226,6 +184,7 @@ export type Database = {
           owner_id?: string
           planned_times?: Json | null
           points: number
+          position?: number | null
           tags?: string[] | null
           temp_id?: number | null
           updated_at?: string | null
@@ -234,6 +193,7 @@ export type Database = {
           aging_settings?: Json | null
           created_at?: string | null
           description?: string | null
+          group_id?: number | null
           id?: never
           is_archived?: boolean | null
           name?: string
@@ -241,11 +201,20 @@ export type Database = {
           owner_id?: string
           planned_times?: Json | null
           points?: number
+          position?: number | null
           tags?: string[] | null
           temp_id?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "habits_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "habit_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       journal: {
         Row: {
