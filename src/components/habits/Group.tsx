@@ -6,14 +6,22 @@ interface GroupProps {
   isCollapsed: boolean
   onToggleCollapse: () => void
   children: React.ReactNode
+  dragHandleProps?: any
 }
 
-export const Group = ({ title, isCollapsed, onToggleCollapse, children }: GroupProps) => {
+export const Group = ({ 
+  title, 
+  isCollapsed, 
+  onToggleCollapse, 
+  children,
+  dragHandleProps 
+}: GroupProps) => {
   return (
     <div className="space-y-1">
       <button 
         onClick={onToggleCollapse}
         className="w-full flex items-center gap-2 p-2 hover:bg-accent/50 rounded-lg transition-colors"
+        {...dragHandleProps}
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4" />
