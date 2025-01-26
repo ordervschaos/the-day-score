@@ -4,7 +4,7 @@ import { JournalEntry } from "@/components/JournalEntry"
 import { UserMenu } from "@/components/UserMenu"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
