@@ -111,6 +111,9 @@ export const HabitList = () => {
     return <div>Loading habits...</div>
   }
 
+  // Get ungrouped habits
+  const ungroupedHabits = habits?.filter(habit => habit.group_id === null) || []
+
   return (
     <Card className="bg-background border-none shadow-none">
       <CardContent>
@@ -173,6 +176,31 @@ export const HabitList = () => {
                   </Draggable>
                 ))}
                 {provided.placeholder}
+
+                {/* Ungrouped habits section */}
+                {ungroupedHabits.length > 0 && (
+                  <Group
+                    id={-1} // Use a special ID for ungrouped section
+                    title="Ungrouped"
+                    isCollapsed={collapsedGroups[-1]}
+                    onToggleCollapse={() => toggleGroup(-1)}
+                  >
+                    {ungroupedHabits.map((habit) => (
+                      <HabitItem
+                        key={habit.id}
+                        id={habit.id}
+                        title={habit.name}
+                        points={habit.points}
+                        logCount={habit.habit_logs?.filter((log: any) => 
+                          log.date === today && log.status === 'completed'
+                        ).length || 0}
+                        onLog={() => logHabitMutation.mutate(habit)}
+                        onUnlog={() => unlogHabitMutation.mutate(habit)}
+                        index={-1}
+                      />
+                    ))}
+                  </Group>
+                )}
               </div>
             )}
           </Droppable>
