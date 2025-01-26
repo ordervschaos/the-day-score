@@ -99,15 +99,23 @@ export const HabitList = () => {
         })
       })
     } else if (sourceType === 'habit') {
-      // Handle moving habits within or between groups
-      const sourceGroupId = result.source.droppableId === 'ungrouped' ? null : 
-        result.source.droppableId === 'groups' ? null :
-        Number(result.source.droppableId.split('-')[1])
-      
-      const destinationGroupId = result.destination.droppableId === 'ungrouped' ? null : 
-        result.destination.droppableId === 'groups' ? null :
-        Number(result.destination.droppableId.split('-')[1])
-      
+      // Handle moving habits between groups
+      let sourceGroupId = null
+      if (result.source.droppableId !== 'ungrouped') {
+        const match = result.source.droppableId.match(/group-(\d+)/)
+        if (match) {
+          sourceGroupId = Number(match[1])
+        }
+      }
+
+      let destinationGroupId = null
+      if (result.destination.droppableId !== 'ungrouped') {
+        const match = result.destination.droppableId.match(/group-(\d+)/)
+        if (match) {
+          destinationGroupId = Number(match[1])
+        }
+      }
+
       const habitId = Number(result.draggableId.split('-')[1])
 
       console.log('Moving habit:', {
