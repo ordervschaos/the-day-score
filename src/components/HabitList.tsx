@@ -100,6 +100,7 @@ export const HabitList = () => {
       })
     } else if (sourceType === 'habit') {
       // Handle moving a habit into a group
+      console.log('result',result)
       const groupId = result.destination.droppableId.replace('group-', '')
       const habitId = result.draggableId.replace('habit-', '')
 
