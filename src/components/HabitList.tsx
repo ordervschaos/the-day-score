@@ -377,35 +377,37 @@ export const HabitList = () => {
               <DialogHeader>
                 <DialogTitle>Create New Habit</DialogTitle>
               </DialogHeader>
-              <form onSubmit={habitForm.handleSubmit((values) => createHabitMutation.mutate(values))}>
-                <div className="space-y-4">
-                  <FormField
-                    control={habitForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter habit name" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={habitForm.control}
-                    name="points"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Points</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="1" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Create Habit</Button>
-                </div>
-              </form>
+              <Form {...habitForm}>
+                <form onSubmit={habitForm.handleSubmit((values) => createHabitMutation.mutate(values))}>
+                  <div className="space-y-4">
+                    <FormField
+                      control={habitForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter habit name" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={habitForm.control}
+                      name="points"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Points</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="1" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit">Create Habit</Button>
+                  </div>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
 
@@ -420,23 +422,25 @@ export const HabitList = () => {
               <DialogHeader>
                 <DialogTitle>Create New Folder</DialogTitle>
               </DialogHeader>
-              <form onSubmit={folderForm.handleSubmit((values) => createFolderMutation.mutate(values))}>
-                <div className="space-y-4">
-                  <FormField
-                    control={folderForm.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter folder name" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Create Folder</Button>
-                </div>
-              </form>
+              <Form {...folderForm}>
+                <form onSubmit={folderForm.handleSubmit((values) => createFolderMutation.mutate(values))}>
+                  <div className="space-y-4">
+                    <FormField
+                      control={folderForm.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter folder name" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit">Create Folder</Button>
+                  </div>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>
