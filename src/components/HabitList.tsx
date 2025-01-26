@@ -2,11 +2,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent } from "./ui/card"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
-import { Check, ChevronDown, ChevronRight, Minus, Plus } from "lucide-react"
+import { Check, ChevronDown, ChevronRight, Minus, Plus, FolderPlus } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
+import { Input } from "./ui/input"
+import { Form, FormField, FormItem, FormLabel, FormControl } from "./ui/form"
+import { useForm } from "react-hook-form"
 
 interface HabitItemProps {
   id: number
@@ -98,6 +102,21 @@ export const HabitList = () => {
   const queryClient = useQueryClient()
   const today = new Date().toISOString().split('T')[0]
   const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({})
+  const [isNewHabitOpen, setIsNewHabitOpen] = useState(false)
+  const [isNewFolderOpen, setIsNewFolderOpen] = useState(false)
+
+  const habitForm = useForm({
+    defaultValues: {
+      name: "",
+      points: 1
+    }
+  })
+
+  const folderForm = useForm({
+    defaultValues: {
+      title: ""
+    }
+  })
 
   const { data: listItems, isLoading, error } = useQuery({
     queryKey: ['habit-list-items'],
@@ -152,6 +171,101 @@ export const HabitList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
+    }
+  })
+
+  const createHabitMutation = useMutation({
+    mutationFn: async (values: { name: string, points: number }) => {
+      // First create the habit
+      const { data: habit, error: habitError } = await supabase
+        .from('habits')
+        .insert([{
+          name: values.name,
+          points: values.points
+        }])
+        .select()
+        .single()
+
+      if (habitError) throw habitError
+
+      // Then create the list item
+      const { data: listItem, error: listItemError } = await supabase
+        .from('habit_list_items')
+        .insert([{
+          type: 'habit',
+          habit_id: habit.id,
+          position: listItems ? listItems.length : 0
+        }])
+        .select()
+        .single()
+
+      if (listItemError) throw listItemError
+
+      return { habit, listItem }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
+      setIsNewHabitOpen(false)
+      habitForm.reset()
+      toast({
+        title: "Success!",
+        description: "Habit created successfully.",
+      })
+    },
+    onError: (error) => {
+      console.error('Error creating habit:', error)
+      toast({
+        title: "Error",
+        description: "Failed to create habit. Please try again.",
+        variant: "destructive"
+      })
+    }
+  })
+
+  const createFolderMutation = useMutation({
+    mutationFn: async (values: { title: string }) => {
+      // First create the group
+      const { data: group, error: groupError } = await supabase
+        .from('habit_groups')
+        .insert([{
+          title: values.title
+        }])
+        .select()
+        .single()
+
+      if (groupError) throw groupError
+
+      // Then create the list item
+      const { data: listItem, error: listItemError } = await supabase
+        .from('habit_list_items')
+        .insert([{
+          type: 'group',
+          group_id: group.id,
+          position: listItems ? listItems.length : 0
+        }])
+        .select()
+        .single()
+
+      if (listItemError) throw listItemError
+
+      return { group, listItem }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habit-list-items'] })
+      setIsNewFolderOpen(false)
+      folderForm.reset()
+      toast({
+        title: "Success!",
+        description: "Folder created successfully.",
+      })
+    },
+    onError: (error) => {
+      console.error('Error creating folder:', error)
+      toast({
+        title: "Error",
+        description: "Failed to create folder. Please try again.",
+        variant: "destructive"
+      })
     }
   })
 
@@ -251,6 +365,82 @@ export const HabitList = () => {
   return (
     <Card className="bg-background border-none shadow-none">
       <CardContent>
+        <div className="flex gap-2 mb-4">
+          <Dialog open={isNewHabitOpen} onOpenChange={setIsNewHabitOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Habit
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Habit</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={habitForm.handleSubmit((values) => createHabitMutation.mutate(values))}>
+                <div className="space-y-4">
+                  <FormField
+                    control={habitForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter habit name" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={habitForm.control}
+                    name="points"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Points</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="1" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Create Habit</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isNewFolderOpen} onOpenChange={setIsNewFolderOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <FolderPlus className="h-4 w-4 mr-2" />
+                New Folder
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Folder</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={folderForm.handleSubmit((values) => createFolderMutation.mutate(values))}>
+                <div className="space-y-4">
+                  <FormField
+                    control={folderForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter folder name" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Create Folder</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="habits">
             {(provided) => (
@@ -292,8 +482,8 @@ export const HabitList = () => {
                                   logCount={habitItem.habits.habit_logs?.filter((log: any) => 
                                     log.date === today && log.status === 'completed'
                                   ).length || 0}
-                                  onLog={() => handleLogHabit(habitItem.habits)}
-                                  onUnlog={() => handleUnlogHabit(habitItem.habits)}
+                                  onLog={() => logHabitMutation.mutate(habitItem.habits)}
+                                  onUnlog={() => unlogHabitMutation.mutate(habitItem.habits)}
                                   index={index}
                                 />
                               ))}
@@ -306,8 +496,8 @@ export const HabitList = () => {
                             logCount={item.habits.habit_logs?.filter((log: any) => 
                               log.date === today && log.status === 'completed'
                             ).length || 0}
-                            onLog={() => handleLogHabit(item.habits)}
-                            onUnlog={() => handleUnlogHabit(item.habits)}
+                            onLog={() => logHabitMutation.mutate(item.habits)}
+                            onUnlog={() => unlogHabitMutation.mutate(item.habits)}
                             index={index}
                           />
                         ) : null}
