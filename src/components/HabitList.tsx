@@ -50,6 +50,7 @@ export const HabitList = () => {
             status
           )
         `)
+        .eq('is_archived', false) // Add this line to filter out archived habits
         .order('position', { ascending: true })
       
       if (error) throw error
