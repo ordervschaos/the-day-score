@@ -110,6 +110,7 @@ export const HabitList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] })
+      queryClient.invalidateQueries({ queryKey: ['habit-logs', today] })
       toast({
         title: "Success!",
         description: "Habit logged successfully.",
@@ -138,6 +139,7 @@ export const HabitList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] })
+      queryClient.invalidateQueries({ queryKey: ['habit-logs', today] })
       toast({
         title: "Success!",
         description: "Habit unlogged successfully.",
