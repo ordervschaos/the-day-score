@@ -99,30 +99,69 @@ export const HabitList = () => {
         })
       })
     } else if (sourceType === 'habit') {
-      // Handle moving a habit into a group
-      const groupId = result.destination.droppableId.replace('group-', '')
-      const habitId = result.draggableId.replace('habit-', '')
+      // Handle moving habits within or between groups
+      const sourceGroupId = result.source.droppableId === 'ungrouped' ? null : 
+        parseInt(result.source.droppableId.replace('group-', ''))
+      const destinationGroupId = result.destination.droppableId === 'ungrouped' ? null : 
+        parseInt(result.destination.droppableId.replace('group-', ''))
+      const habitId = parseInt(result.draggableId.replace('habit-', ''))
+
+      console.log('Moving habit:', {
+        habitId,
+        sourceGroupId,
+        destinationGroupId,
+        sourceIndex: result.source.index,
+        destinationIndex: result.destination.index
+      })
+
+      // Get all habits in the destination group
+      const destinationHabits = habits.filter(h => 
+        (result.destination.droppableId === 'ungrouped' ? h.group_id === null : h.group_id === destinationGroupId)
+      )
+
+      // Calculate new positions
+      const newPositions = Array.from(destinationHabits)
+      const [movedHabit] = habits.filter(h => h.id === habitId)
+      newPositions.splice(result.destination.index, 0, movedHabit)
 
       // Optimistically update the cache
-      const updatedHabits = habits.map((habit: any) => {
-        if (habit.id.toString() === habitId) {
-          return { ...habit, group_id: parseInt(groupId) }
+      const updatedHabits = habits.map(habit => {
+        if (habit.id === habitId) {
+          return { ...habit, group_id: destinationGroupId }
         }
         return habit
       })
       queryClient.setQueryData(['habits'], updatedHabits)
 
-      // Update the habit's group in the database
-      const { error } = await supabase
-        .from('habits')
-        .update({ group_id: parseInt(groupId) })
-        .eq('id', parseInt(habitId))
+      try {
+        // Update the habit's group and position
+        const { error } = await supabase
+          .from('habits')
+          .update({ 
+            group_id: destinationGroupId,
+            position: result.destination.index
+          })
+          .eq('id', habitId)
 
-      if (error) {
-        console.error('Error moving habit to group:', error)
+        if (error) throw error
+
+        // Update positions of other habits in the destination group
+        newPositions.forEach((habit, index) => {
+          if (habit.id !== habitId) {
+            updatePositionMutation.mutate({ 
+              type: 'habit',
+              id: habit.id, 
+              position: index 
+            })
+          }
+        })
+
+        console.log('Successfully moved habit to new group')
+      } catch (error) {
+        console.error('Error moving habit:', error)
         toast({
           title: "Error",
-          description: "Failed to move habit to group. Please try again.",
+          description: "Failed to move habit. Please try again.",
           variant: "destructive"
         })
         // Revert the optimistic update
