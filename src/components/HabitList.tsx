@@ -60,54 +60,37 @@ export const HabitList = () => {
   const unlogHabitMutation = useUnlogHabit()
 
   const handleDragEnd = async (result: any) => {
+    console.log('Drag end result:', result)
     if (!result.destination || !habits || !groups) return
 
-    const sourceType = result.source.droppableId === 'groups' ? 'group' : 'habit'
-    const destinationType = result.destination.droppableId === 'groups' ? 'group' : 'habit'
+    const habitId = parseInt(result.draggableId.replace('habit-', ''))
+    const sourceGroupId = result.source.droppableId === 'ungrouped' 
+      ? null 
+      : parseInt(result.source.droppableId.replace('group-', ''))
+    
+    // If dropping into the groups droppable, find the actual group
+    const destinationGroupId = result.destination.droppableId === 'ungrouped'
+      ? null
+      : result.destination.droppableId === 'groups'
+        ? groups[result.destination.index].id
+        : parseInt(result.destination.droppableId.replace('group-', ''))
 
-    if (sourceType === 'group' && destinationType === 'group') {
-      const items = Array.from(groups)
-      const [reorderedItem] = items.splice(result.source.index, 1)
-      items.splice(result.destination.index, 0, reorderedItem)
+    console.log('Moving habit:', {
+      habitId,
+      sourceGroupId,
+      destinationGroupId,
+      sourceIndex: result.source.index,
+      destinationIndex: result.destination.index
+    })
 
-      // Optimistically update the cache
-      queryClient.setQueryData(['habit-groups'], items)
-
-      // Update positions in the background
-      items.forEach((item, index) => {
-        updatePositionMutation.mutate({ 
-          type: 'group',
-          id: item.id, 
-          position: index 
-        })
-      })
-    } else if (sourceType === 'habit' && destinationType === 'habit') {
-      // Handle moving habits within the same group or ungrouped section
-      const items = Array.from(habits)
-      const [reorderedItem] = items.splice(result.source.index, 1)
-      items.splice(result.destination.index, 0, reorderedItem)
-
-      // Optimistically update the cache
-      queryClient.setQueryData(['habits'], items)
-
-      // Update positions in the background
-      items.forEach((item, index) => {
-        updatePositionMutation.mutate({ 
-          type: 'habit',
-          id: item.id, 
-          position: index 
-        })
-      })
-    } else if (sourceType === 'habit') {
-      // Handle moving a habit into a group
-      console.log('result',result)
-      const groupId = result.destination.droppableId.replace('group-', '')
-      const habitId = result.draggableId.replace('habit-', '')
-
+    if (result.destination.droppableId === 'groups') {
+      // Handle dropping a habit onto a group
+      const targetGroup = groups[result.destination.index]
+      
       // Optimistically update the cache
       const updatedHabits = habits.map((habit: any) => {
-        if (habit.id.toString() === habitId) {
-          return { ...habit, group_id: parseInt(groupId) }
+        if (habit.id === habitId) {
+          return { ...habit, group_id: targetGroup.id }
         }
         return habit
       })
@@ -116,8 +99,8 @@ export const HabitList = () => {
       // Update the habit's group in the database
       const { error } = await supabase
         .from('habits')
-        .update({ group_id: parseInt(groupId) })
-        .eq('id', parseInt(habitId))
+        .update({ group_id: targetGroup.id })
+        .eq('id', habitId)
 
       if (error) {
         console.error('Error moving habit to group:', error)
@@ -129,6 +112,45 @@ export const HabitList = () => {
         // Revert the optimistic update
         queryClient.invalidateQueries({ queryKey: ['habits'] })
       }
+    } else if (sourceGroupId !== destinationGroupId) {
+      // Handle moving between groups or ungrouped
+      const updatedHabits = habits.map((habit: any) => {
+        if (habit.id === habitId) {
+          return { ...habit, group_id: destinationGroupId }
+        }
+        return habit
+      })
+      queryClient.setQueryData(['habits'], updatedHabits)
+
+      const { error } = await supabase
+        .from('habits')
+        .update({ group_id: destinationGroupId })
+        .eq('id', habitId)
+
+      if (error) {
+        console.error('Error moving habit between groups:', error)
+        toast({
+          title: "Error",
+          description: "Failed to move habit. Please try again.",
+          variant: "destructive"
+        })
+        queryClient.invalidateQueries({ queryKey: ['habits'] })
+      }
+    } else {
+      // Handle reordering within the same group
+      const items = Array.from(habits)
+      const [reorderedItem] = items.splice(result.source.index, 1)
+      items.splice(result.destination.index, 0, reorderedItem)
+
+      queryClient.setQueryData(['habits'], items)
+
+      items.forEach((item, index) => {
+        updatePositionMutation.mutate({ 
+          type: 'habit',
+          id: item.id, 
+          position: index 
+        })
+      })
     }
   }
 
@@ -170,7 +192,6 @@ export const HabitList = () => {
               >
                 {groups?.map((group, index) => (
                   <Draggable 
-                  {`group-${group.id}`}
                     key={group.id} 
                     draggableId={`group-${group.id}`} 
                     index={index}
@@ -187,7 +208,7 @@ export const HabitList = () => {
                           isCollapsed={collapsedGroups[group.id]}
                           onToggleCollapse={() => toggleGroup(group.id)}
                         >
-                          <Droppable droppableId={`group-${group.id}`}>
+                          <Droppable droppableId={`group-${group.id}`} type="habit">
                             {(provided) => (
                               <div
                                 ref={provided.innerRef}
@@ -234,7 +255,7 @@ export const HabitList = () => {
                 {provided.placeholder}
 
                 {/* Ungrouped habits section */}
-                <Droppable droppableId="ungrouped">
+                <Droppable droppableId="ungrouped" type="habit">
                   {(provided) => (
                     <div
                       ref={provided.innerRef}
