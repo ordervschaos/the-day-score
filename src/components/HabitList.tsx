@@ -9,6 +9,8 @@ import { HabitItem } from "./habits/HabitItem"
 import { Group } from "./habits/Group"
 import { CreateHabitDialog } from "./habits/CreateHabitDialog"
 import { CreateFolderDialog } from "./habits/CreateFolderDialog"
+import { Button } from "./ui/button"
+import { GripVertical } from "lucide-react"
 
 export const HabitList = () => {
   const { toast } = useToast()
@@ -17,6 +19,7 @@ export const HabitList = () => {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({})
   const [isNewHabitOpen, setIsNewHabitOpen] = useState(false)
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false)
+  const [isReorderMode, setIsReorderMode] = useState(false)
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery({
     queryKey: ['habit-groups'],
@@ -58,6 +61,7 @@ export const HabitList = () => {
   const updatePositionMutation = useUpdatePosition()
 
   const handleDragEnd = async (result: any) => {
+    if (!isReorderMode) return
     console.log('Drag end result:', result)
     if (!result.destination || !habits || !groups) return
 
@@ -120,7 +124,7 @@ export const HabitList = () => {
       return
     }
 
-    // Handle habit reordering (existing code)
+    // Handle habit reordering
     const habitId = parseInt(draggableId.replace('habit-', ''))
     const sourceGroupId = source.droppableId === 'ungrouped' 
       ? null 
@@ -252,6 +256,12 @@ export const HabitList = () => {
             isOpen={isNewFolderOpen}
             onOpenChange={setIsNewFolderOpen}
           />
+          <Button
+            variant="outline"
+            onClick={() => setIsReorderMode(!isReorderMode)}
+          >
+            {isReorderMode ? "Done Reordering" : "Reorder"}
+          </Button>
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -268,6 +278,7 @@ export const HabitList = () => {
                   title="Ungrouped"
                   isCollapsed={collapsedGroups[-1]}
                   onToggleCollapse={() => toggleGroup(-1)}
+                  showDragHandle={isReorderMode}
                 >
                   {!collapsedGroups[-1] && (
                     <Droppable droppableId="ungrouped" type="habit">
@@ -281,24 +292,32 @@ export const HabitList = () => {
                               key={habit.id}
                               draggableId={`habit-${habit.id}`}
                               index={index}
+                              isDragDisabled={!isReorderMode}
                             >
                               {(provided) => (
                                 <div
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
+                                  className="flex items-center gap-2"
                                 >
-                                  <HabitItem
-                                    id={habit.id}
-                                    title={habit.name}
-                                    points={habit.points}
-                                    logCount={habit.habit_logs?.filter((log: any) => 
-                                      log.date === today && log.status === 'completed'
-                                    ).length || 0}
-                                    onLog={() => logHabitMutation.mutate(habit)}
-                                    onUnlog={() => unlogHabitMutation.mutate(habit)}
-                                    index={index}
-                                  />
+                                  {isReorderMode && (
+                                    <div {...provided.dragHandleProps}>
+                                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                  <div className="flex-1">
+                                    <HabitItem
+                                      id={habit.id}
+                                      title={habit.name}
+                                      points={habit.points}
+                                      logCount={habit.habit_logs?.filter((log: any) => 
+                                        log.date === today && log.status === 'completed'
+                                      ).length || 0}
+                                      onLog={() => logHabitMutation.mutate(habit)}
+                                      onUnlog={() => unlogHabitMutation.mutate(habit)}
+                                      index={index}
+                                    />
+                                  </div>
                                 </div>
                               )}
                             </Draggable>
@@ -322,6 +341,7 @@ export const HabitList = () => {
                       key={group.id}
                       draggableId={`group-${group.id}`}
                       index={groupIndex}
+                      isDragDisabled={!isReorderMode}
                     >
                       {(provided) => (
                         <div
@@ -333,7 +353,8 @@ export const HabitList = () => {
                             title={group.title}
                             isCollapsed={collapsedGroups[group.id]}
                             onToggleCollapse={() => toggleGroup(group.id)}
-                            dragHandleProps={provided.dragHandleProps}
+                            dragHandleProps={isReorderMode ? provided.dragHandleProps : undefined}
+                            showDragHandle={isReorderMode}
                           >
                             {!collapsedGroups[group.id] && (
                               <Droppable droppableId={`group-${group.id}`} type="habit">
@@ -347,24 +368,32 @@ export const HabitList = () => {
                                         key={habit.id}
                                         draggableId={`habit-${habit.id}`}
                                         index={index}
+                                        isDragDisabled={!isReorderMode}
                                       >
                                         {(provided) => (
                                           <div
                                             ref={provided.innerRef}
                                             {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
+                                            className="flex items-center gap-2"
                                           >
-                                            <HabitItem
-                                              id={habit.id}
-                                              title={habit.name}
-                                              points={habit.points}
-                                              logCount={habit.habit_logs?.filter((log: any) => 
-                                                log.date === today && log.status === 'completed'
-                                              ).length || 0}
-                                              onLog={() => logHabitMutation.mutate(habit)}
-                                              onUnlog={() => unlogHabitMutation.mutate(habit)}
-                                              index={index}
-                                            />
+                                            {isReorderMode && (
+                                              <div {...provided.dragHandleProps}>
+                                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                              </div>
+                                            )}
+                                            <div className="flex-1">
+                                              <HabitItem
+                                                id={habit.id}
+                                                title={habit.name}
+                                                points={habit.points}
+                                                logCount={habit.habit_logs?.filter((log: any) => 
+                                                  log.date === today && log.status === 'completed'
+                                                ).length || 0}
+                                                onLog={() => logHabitMutation.mutate(habit)}
+                                                onUnlog={() => unlogHabitMutation.mutate(habit)}
+                                                index={index}
+                                              />
+                                            </div>
                                           </div>
                                         )}
                                       </Draggable>

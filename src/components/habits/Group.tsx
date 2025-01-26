@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight, GripVertical } from "lucide-react"
 
 interface GroupProps {
   id: number
@@ -7,6 +7,7 @@ interface GroupProps {
   onToggleCollapse: () => void
   children: React.ReactNode
   dragHandleProps?: any
+  showDragHandle?: boolean
 }
 
 export const Group = ({ 
@@ -14,22 +15,31 @@ export const Group = ({
   isCollapsed, 
   onToggleCollapse, 
   children,
-  dragHandleProps 
+  dragHandleProps,
+  showDragHandle
 }: GroupProps) => {
   return (
     <div className="space-y-1">
-      <button 
-        onClick={onToggleCollapse}
+      <div 
         className="w-full flex items-center gap-2 p-2 hover:bg-accent/50 rounded-lg transition-colors"
-        {...dragHandleProps}
       >
-        {isCollapsed ? (
-          <ChevronRight className="h-4 w-4" />
-        ) : (
-          <ChevronDown className="h-4 w-4" />
+        {showDragHandle && (
+          <div {...dragHandleProps}>
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
         )}
-        <span className="font-medium">{title}</span>
-      </button>
+        <button 
+          onClick={onToggleCollapse}
+          className="flex items-center gap-2 flex-1"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+          <span className="font-medium">{title}</span>
+        </button>
+      </div>
       {!isCollapsed && (
         <div className="pl-6">
           {children}
