@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ArrowLeft, Save, Trash } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -30,29 +30,33 @@ const HabitDetails = () => {
   const [points, setPoints] = useState(0)
   
   const { data: habit, isLoading } = useQuery({
-    queryKey: ['habits', id],
+    queryKey: ['habits', Number(id)],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('habits')
         .select('*')
-        .eq('id', id)
+        .eq('id', Number(id))
         .single()
       
       if (error) throw error
       return data
-    },
-    onSuccess: (data) => {
-      setName(data.name)
-      setPoints(data.points)
     }
   })
+
+  // Update local state when habit data is loaded
+  useEffect(() => {
+    if (habit) {
+      setName(habit.name)
+      setPoints(habit.points)
+    }
+  }, [habit])
 
   const updateMutation = useMutation({
     mutationFn: async (values: { name: string; points: number }) => {
       const { error } = await supabase
         .from('habits')
         .update(values)
-        .eq('id', id)
+        .eq('id', Number(id))
 
       if (error) throw error
     },
@@ -78,7 +82,7 @@ const HabitDetails = () => {
       const { error } = await supabase
         .from('habits')
         .update({ is_archived: true })
-        .eq('id', id)
+        .eq('id', Number(id))
 
       if (error) throw error
     },
