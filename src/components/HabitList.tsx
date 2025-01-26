@@ -101,10 +101,14 @@ export const HabitList = () => {
     } else if (sourceType === 'habit') {
       // Handle moving habits within or between groups
       const sourceGroupId = result.source.droppableId === 'ungrouped' ? null : 
-        parseInt(result.source.droppableId.replace('group-', ''))
+        result.source.droppableId === 'groups' ? null :
+        Number(result.source.droppableId.split('-')[1])
+      
       const destinationGroupId = result.destination.droppableId === 'ungrouped' ? null : 
-        parseInt(result.destination.droppableId.replace('group-', ''))
-      const habitId = parseInt(result.draggableId.replace('habit-', ''))
+        result.destination.droppableId === 'groups' ? null :
+        Number(result.destination.droppableId.split('-')[1])
+      
+      const habitId = Number(result.draggableId.split('-')[1])
 
       console.log('Moving habit:', {
         habitId,
