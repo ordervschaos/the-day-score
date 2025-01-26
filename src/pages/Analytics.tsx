@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, addDays } from "date-fns"
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, addDays, startOfMonth, endOfMonth, getWeek, getYear, startOfDay } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -60,22 +60,92 @@ const Analytics = () => {
       const { data, error } = await query
       if (error) throw error
 
-      // Group data by date
-      const dateGroups = eachDayOfInterval({ 
-        start: dateRange.from, 
-        end: dateRange.to || addDays(dateRange.from, 6)
-      }).map(date => {
-        const dateStr = date.toISOString().split('T')[0]
-        const dayLogs = data.filter(log => log.date === dateStr)
-        return {
-          date: dateStr,
-          points: dayLogs.reduce((sum, log) => sum + (log.points || 0), 0)
-        }
-      })
+      // Group data based on timeframe
+      if (timeframe === "daily") {
+        return eachDayOfInterval({ 
+          start: dateRange.from, 
+          end: dateRange.to || addDays(dateRange.from, 6)
+        }).map(date => {
+          const dateStr = date.toISOString().split('T')[0]
+          const dayLogs = data.filter(log => log.date === dateStr)
+          return {
+            date: dateStr,
+            points: dayLogs.reduce((sum, log) => sum + (log.points || 0), 0)
+          }
+        })
+      } else if (timeframe === "weekly") {
+        // Group by week number
+        const weeklyData = new Map()
+        
+        data.forEach(log => {
+          const date = parseISO(log.date)
+          const weekKey = `${getYear(date)}-W${getWeek(date)}`
+          const current = weeklyData.get(weekKey) || { points: 0, startDate: startOfWeek(date) }
+          weeklyData.set(weekKey, {
+            ...current,
+            points: current.points + (log.points || 0)
+          })
+        })
 
-      return dateGroups
+        return Array.from(weeklyData.entries())
+          .map(([weekKey, data]) => ({
+            date: data.startDate.toISOString().split('T')[0],
+            points: data.points,
+            label: weekKey
+          }))
+          .sort((a, b) => a.date.localeCompare(b.date))
+      } else {
+        // Monthly grouping
+        const monthlyData = new Map()
+        
+        data.forEach(log => {
+          const date = parseISO(log.date)
+          const monthKey = format(date, 'yyyy-MM')
+          const current = monthlyData.get(monthKey) || { points: 0, startDate: startOfMonth(date) }
+          monthlyData.set(monthKey, {
+            ...current,
+            points: current.points + (log.points || 0)
+          })
+        })
+
+        return Array.from(monthlyData.entries())
+          .map(([monthKey, data]) => ({
+            date: data.startDate.toISOString().split('T')[0],
+            points: data.points,
+            label: monthKey
+          }))
+          .sort((a, b) => a.date.localeCompare(b.date))
+      }
     }
   })
+
+  const formatXAxis = (dateStr: string) => {
+    const date = parseISO(dateStr)
+    switch (timeframe) {
+      case "daily":
+        return format(date, 'MMM d')
+      case "weekly":
+        return `Week ${getWeek(date)}`
+      case "monthly":
+        return format(date, 'MMM yyyy')
+      default:
+        return dateStr
+    }
+  }
+
+  const formatTooltipLabel = (dateStr: string) => {
+    const date = parseISO(dateStr)
+    switch (timeframe) {
+      case "daily":
+        return format(date, 'MMM d, yyyy')
+      case "weekly":
+        return `Week of ${format(date, 'MMM d, yyyy')}`
+      case "monthly":
+        return format(date, 'MMMM yyyy')
+      default:
+        return dateStr
+    }
+  }
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -151,11 +221,11 @@ const Analytics = () => {
               <BarChart data={habitLogs}>
                 <XAxis 
                   dataKey="date" 
-                  tickFormatter={(date) => format(parseISO(date), 'MMM d')}
+                  tickFormatter={formatXAxis}
                 />
                 <YAxis />
                 <Tooltip
-                  labelFormatter={(label) => format(parseISO(label), 'MMM d, yyyy')}
+                  labelFormatter={formatTooltipLabel}
                   formatter={(value) => [`${value} points`, 'Points']}
                 />
                 <Bar dataKey="points" fill="hsl(var(--primary))" />
