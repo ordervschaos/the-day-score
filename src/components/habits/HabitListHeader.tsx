@@ -64,7 +64,7 @@ export const HabitListHeader = ({
         
       </div>
 
-      <div className="flex items-center border rounded-md">
+      <div className="flex items-center rounded-md">
 
       <ActionButton
           onClick={() => onReorderModeChange(!isReorderMode)}
