@@ -12,12 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { query } = await req.json()
+    const { query, page = 1 } = await req.json()
     const accessKey = Deno.env.get('UNSPLASH_ACCESS_KEY')
+    const perPage = 12
 
-    // Search Unsplash
+    // Search Unsplash with pagination
     const searchResponse = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=20`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`,
       {
         headers: {
           'Authorization': `Client-ID ${accessKey}`,
@@ -28,7 +29,11 @@ serve(async (req) => {
     const searchData = await searchResponse.json()
     
     return new Response(
-      JSON.stringify({ results: searchData.results }),
+      JSON.stringify({ 
+        results: searchData.results,
+        total: searchData.total,
+        total_pages: searchData.total_pages
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {

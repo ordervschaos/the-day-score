@@ -28,6 +28,14 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 const HabitDetails = () => {
   const { id } = useParams()
@@ -41,6 +49,8 @@ const HabitDetails = () => {
   const [unsplashImages, setUnsplashImages] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const [showImageDialog, setShowImageDialog] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(0)
   
   const { data: habit, isLoading } = useQuery({
     queryKey: ['habits', Number(id)],
@@ -117,15 +127,16 @@ const HabitDetails = () => {
     }
   })
 
-  const searchUnsplash = async (query: string) => {
+  const searchUnsplash = async (query: string, page: number = 1) => {
     setIsSearching(true)
     try {
       const { data, error } = await supabase.functions.invoke('unsplash-search', {
-        body: { query }
+        body: { query, page }
       })
       
       if (error) throw error
       setUnsplashImages(data.results)
+      setTotalPages(data.total_pages)
     } catch (error) {
       console.error('Error searching Unsplash:', error)
       toast({
@@ -136,6 +147,11 @@ const HabitDetails = () => {
     } finally {
       setIsSearching(false)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    searchUnsplash(searchQuery, page)
   }
 
   const selectCoverImage = async (imageUrl: string) => {
@@ -212,12 +228,16 @@ const HabitDetails = () => {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
-                          searchUnsplash(searchQuery)
+                          setCurrentPage(1)
+                          searchUnsplash(searchQuery, 1)
                         }
                       }}
                     />
                     <Button 
-                      onClick={() => searchUnsplash(searchQuery)}
+                      onClick={() => {
+                        setCurrentPage(1)
+                        searchUnsplash(searchQuery, 1)
+                      }}
                       disabled={isSearching}
                     >
                       Search
@@ -243,6 +263,43 @@ const HabitDetails = () => {
                         </div>
                       ))}
                     </div>
+                    
+                    {unsplashImages.length > 0 && totalPages > 1 && (
+                      <div className="mt-4">
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious 
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1 || isSearching}
+                              />
+                            </PaginationItem>
+                            
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                              const pageNumber = i + 1
+                              return (
+                                <PaginationItem key={pageNumber}>
+                                  <PaginationLink
+                                    onClick={() => handlePageChange(pageNumber)}
+                                    isActive={currentPage === pageNumber}
+                                    disabled={isSearching}
+                                  >
+                                    {pageNumber}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              )
+                            })}
+                            
+                            <PaginationItem>
+                              <PaginationNext 
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages || isSearching}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    )}
                   </ScrollArea>
                 </div>
               </DialogContent>
