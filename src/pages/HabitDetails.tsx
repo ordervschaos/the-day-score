@@ -271,7 +271,7 @@ const HabitDetails = () => {
                             <PaginationItem>
                               <PaginationPrevious 
                                 onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1 || isSearching}
+                                className={currentPage === 1 || isSearching ? 'pointer-events-none opacity-50' : ''}
                               />
                             </PaginationItem>
                             
@@ -282,7 +282,7 @@ const HabitDetails = () => {
                                   <PaginationLink
                                     onClick={() => handlePageChange(pageNumber)}
                                     isActive={currentPage === pageNumber}
-                                    disabled={isSearching}
+                                    className={isSearching ? 'pointer-events-none opacity-50' : ''}
                                   >
                                     {pageNumber}
                                   </PaginationLink>
@@ -293,7 +293,7 @@ const HabitDetails = () => {
                             <PaginationItem>
                               <PaginationNext 
                                 onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages || isSearching}
+                                className={currentPage === totalPages || isSearching ? 'pointer-events-none opacity-50' : ''}
                               />
                             </PaginationItem>
                           </PaginationContent>

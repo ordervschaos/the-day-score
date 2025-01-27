@@ -13,6 +13,31 @@ interface HabitListHeaderProps {
   onViewModeChange: (mode: 'card' | 'list') => void
 }
 
+interface ActionButtonProps {
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+}
+
+const ActionButton = ({ onClick, icon, label }: ActionButtonProps) => {
+  const isMobile = useIsMobile()
+  
+  return (
+    <Button
+      variant="outline"
+      onClick={onClick}
+      className="flex items-center gap-2"
+    >
+      {icon}
+      {isMobile ? (
+        <span className="sr-only">{label}</span>
+      ) : (
+        <span>{label}</span>
+      )}
+    </Button>
+  )
+}
+
 export const HabitListHeader = ({
   isReorderMode,
   onReorderModeChange,
@@ -21,7 +46,6 @@ export const HabitListHeader = ({
 }: HabitListHeaderProps) => {
   const [isNewHabitOpen, setIsNewHabitOpen] = useState(false)
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false)
-  const isMobile = useIsMobile()
 
   return (
     <div className="flex gap-2 mb-4">
@@ -33,55 +57,25 @@ export const HabitListHeader = ({
         isOpen={isNewFolderOpen}
         onOpenChange={setIsNewFolderOpen}
       />
-      <Button
-        variant="outline"
+      
+      <ActionButton
         onClick={() => onReorderModeChange(!isReorderMode)}
-        className="flex items-center gap-2"
-      >
-        {isMobile ? (
-          <>
-            <GripHorizontal className="h-4 w-4" />
-            {!isReorderMode && <span className="sr-only">Reorder</span>}
-            {isReorderMode && <span className="sr-only">Done</span>}
-          </>
-        ) : (
-          isReorderMode ? "Done Reordering" : "Reorder"
-        )}
-      </Button>
-      <Button
-        variant="outline"
+        icon={<GripHorizontal className="h-4 w-4" />}
+        label={isReorderMode ? "Done Reordering" : "Reorder"}
+      />
+      
+      <ActionButton
         onClick={() => setIsNewHabitOpen(true)}
-        className="flex items-center gap-2"
-      >
-        {isMobile ? (
-          <>
-            <Plus className="h-4 w-4" />
-            <span className="sr-only">New Habit</span>
-          </>
-        ) : (
-          <>
-            <Plus className="h-4 w-4" />
-            <span>New Habit</span>
-          </>
-        )}
-      </Button>
-      <Button
-        variant="outline"
+        icon={<Plus className="h-4 w-4" />}
+        label="New Habit"
+      />
+      
+      <ActionButton
         onClick={() => setIsNewFolderOpen(true)}
-        className="flex items-center gap-2"
-      >
-        {isMobile ? (
-          <>
-            <FolderPlus className="h-4 w-4" />
-            <span className="sr-only">New Folder</span>
-          </>
-        ) : (
-          <>
-            <FolderPlus className="h-4 w-4" />
-            <span>New Folder</span>
-          </>
-        )}
-      </Button>
+        icon={<FolderPlus className="h-4 w-4" />}
+        label="New Folder"
+      />
+
       <div className="flex-1" />
       <div className="flex items-center border rounded-md">
         <Toggle
