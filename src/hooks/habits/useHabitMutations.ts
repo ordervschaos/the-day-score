@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { addHabit, createHabitGroup } from "@/lib/api"
 
 export const useLogHabit = () => {
   const { toast } = useToast()
@@ -86,6 +87,57 @@ export const useUpdatePosition = () => {
         .eq('id', id)
 
       if (error) throw error
+    }
+  })
+}
+
+export const useCreateHabit = () => {
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: addHabit,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habits'] })
+      toast({
+        title: "Success!",
+        description: "Habit created successfully.",
+      })
+    },
+    onError: (error) => {
+      console.error('Error creating habit:', error)
+      toast({
+        title: "Error",
+        description: "Failed to create habit. Please try again.",
+        variant: "destructive"
+      })
+    }
+  })
+}
+
+export const useCreateFolder = () => {
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (values: { title: string }) => {
+      const result = await createHabitGroup(values.title)
+      return result
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habit-groups'] })
+      toast({
+        title: "Success!",
+        description: "Folder created successfully.",
+      })
+    },
+    onError: (error) => {
+      console.error('Error creating folder:', error)
+      toast({
+        title: "Error",
+        description: "Failed to create folder. Please try again.",
+        variant: "destructive"
+      })
     }
   })
 }
