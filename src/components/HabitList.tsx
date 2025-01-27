@@ -345,7 +345,7 @@ export const HabitList = () => {
                         <div
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={viewMode === 'card' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-1'}
+                          className={viewMode === 'card' ? 'grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4' : 'space-y-1'}
                         >
                           {ungroupedHabits.map((habit, index) => (
                             <Draggable
@@ -404,7 +404,7 @@ export const HabitList = () => {
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.droppableProps}
-                                    className={viewMode === 'card' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-1'}
+                                    className={viewMode === 'card' ? 'grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4' : 'space-y-1'}
                                   >
                                     {groupHabits.map((habit, index) => (
                                       <Draggable
