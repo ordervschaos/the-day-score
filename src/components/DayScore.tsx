@@ -51,13 +51,6 @@ export const DayScore = () => {
   return (
     <Card className="bg-background border-none shadow-none">
       <CardContent className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">The Day Score</h1>
-          <Button variant="ghost" size="icon">
-            U
-          </Button>
-        </div>
-        
         <div className="flex items-center justify-center gap-4">
           <Button variant="ghost" size="icon" onClick={handlePreviousDay}>
             <ChevronLeft className="h-4 w-4" />
