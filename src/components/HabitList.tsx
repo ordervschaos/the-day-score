@@ -2,25 +2,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent } from "./ui/card"
 import { supabase } from "@/integrations/supabase/client"
 import { useState } from "react"
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd"
+import { DragDropContext } from "react-beautiful-dnd"
 import { useToast } from "@/hooks/use-toast"
 import { useLogHabit, useUnlogHabit, useUpdatePosition } from "@/hooks/habits/useHabitMutations"
-import { HabitItem } from "./habits/HabitItem"
-import { HabitCard } from "./habits/HabitCard"
-import { Group } from "./habits/Group"
-import { CreateHabitDialog } from "./habits/CreateHabitDialog"
-import { CreateFolderDialog } from "./habits/CreateFolderDialog"
-import { Button } from "./ui/button"
-import { GripVertical, LayoutGrid, LayoutList } from "lucide-react"
-import { Toggle } from "./ui/toggle"
+import { HabitListHeader } from "./habits/HabitListHeader"
+import { GroupList } from "./habits/GroupList"
 
 export const HabitList = () => {
   const { toast } = useToast()
   const queryClient = useQueryClient()
-  const today = new Date().toISOString().split('T')[0]
   const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({})
-  const [isNewHabitOpen, setIsNewHabitOpen] = useState(false)
-  const [isNewFolderOpen, setIsNewFolderOpen] = useState(false)
   const [isReorderMode, setIsReorderMode] = useState(false)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
 
@@ -53,7 +44,7 @@ export const HabitList = () => {
             status
           )
         `)
-        .eq('is_archived', false) // Add this line to filter out archived habits
+        .eq('is_archived', false)
         .order('position', { ascending: true })
       
       if (error) throw error
@@ -61,8 +52,6 @@ export const HabitList = () => {
       return data
     }
   })
-
-  const updatePositionMutation = useUpdatePosition()
 
   const handleDragEnd = async (result: any) => {
     if (!isReorderMode) return
@@ -238,90 +227,15 @@ export const HabitList = () => {
     return <div>Loading habits...</div>
   }
 
-  // Get ungrouped habits and sort them by position
-  const ungroupedHabits = habits
-    ?.filter(habit => habit.group_id === null)
-    .sort((a, b) => a.position - b.position) || []
-
-  const renderHabit = (habit: any, provided?: any) => {
-    const commonProps = {
-      id: habit.id,
-      title: habit.name,
-      points: habit.points,
-      logCount: habit.habit_logs?.filter((log: any) => 
-        log.date === today && log.status === 'completed'
-      ).length || 0,
-      onLog: () => logHabitMutation.mutate(habit),
-      onUnlog: () => unlogHabitMutation.mutate(habit),
-    }
-
-    if (viewMode === 'card') {
-      return (
-        <div className={isReorderMode ? "flex items-center gap-2" : ""}>
-          {isReorderMode && provided && (
-            <div {...provided.dragHandleProps}>
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
-            </div>
-          )}
-          <div className="flex-1">
-            <HabitCard {...commonProps} coverImage={habit.cover_image} />
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div className={isReorderMode ? "flex items-center gap-2" : ""}>
-        {isReorderMode && provided && (
-          <div {...provided.dragHandleProps}>
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </div>
-        )}
-        <div className="flex-1">
-          <HabitItem {...commonProps} index={habit.position} />
-        </div>
-      </div>
-    )
-  }
-
   return (
     <Card className="bg-background border-none shadow-none">
       <CardContent>
-        <div className="flex gap-2 mb-4">
-          <CreateHabitDialog 
-            isOpen={isNewHabitOpen}
-            onOpenChange={setIsNewHabitOpen}
-          />
-          <CreateFolderDialog
-            isOpen={isNewFolderOpen}
-            onOpenChange={setIsNewFolderOpen}
-          />
-          <Button
-            variant="outline"
-            onClick={() => setIsReorderMode(!isReorderMode)}
-          >
-            {isReorderMode ? "Done Reordering" : "Reorder"}
-          </Button>
-          <div className="flex-1" />
-          <div className="flex items-center border rounded-md">
-            <Toggle
-              pressed={viewMode === 'list'}
-              onPressedChange={() => setViewMode('list')}
-              className="rounded-none rounded-l-md"
-              aria-label="List view"
-            >
-              <LayoutList className="h-4 w-4" />
-            </Toggle>
-            <Toggle
-              pressed={viewMode === 'card'}
-              onPressedChange={() => setViewMode('card')}
-              className="rounded-none rounded-r-md"
-              aria-label="Card view"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Toggle>
-          </div>
-        </div>
+        <HabitListHeader
+          isReorderMode={isReorderMode}
+          onReorderModeChange={setIsReorderMode}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+        />
 
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="groups" type="group">
@@ -329,111 +243,17 @@ export const HabitList = () => {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="space-y-1"
               >
-                {/* Ungrouped habits section */}
-                <Group
-                  id={-1}
-                  title="Ungrouped"
-                  isCollapsed={collapsedGroups[-1]}
-                  onToggleCollapse={() => toggleGroup(-1)}
-                  showDragHandle={isReorderMode}
-                >
-                  {!collapsedGroups[-1] && (
-                    <Droppable droppableId="ungrouped" type="habit">
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
-                          className={viewMode === 'card' ? 'grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4' : 'space-y-1'}
-                        >
-                          {ungroupedHabits.map((habit, index) => (
-                            <Draggable
-                              key={habit.id}
-                              draggableId={`habit-${habit.id}`}
-                              index={index}
-                              isDragDisabled={!isReorderMode}
-                            >
-                              {(provided) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                >
-                                  {renderHabit(habit, provided)}
-                                </div>
-                              )}
-                            </Draggable>
-                          ))}
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  )}
-                </Group>
-
-                {/* Regular groups */}
-                {groups?.map((group, groupIndex) => {
-                  // Get habits for this group and sort them by position
-                  const groupHabits = habits
-                    ?.filter(habit => habit.group_id === group.id)
-                    .sort((a, b) => a.position - b.position) || []
-
-                  return (
-                    <Draggable
-                      key={group.id}
-                      draggableId={`group-${group.id}`}
-                      index={groupIndex}
-                      isDragDisabled={!isReorderMode}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                        >
-                          <Group
-                            id={group.id}
-                            title={group.title}
-                            isCollapsed={collapsedGroups[group.id]}
-                            onToggleCollapse={() => toggleGroup(group.id)}
-                            dragHandleProps={isReorderMode ? provided.dragHandleProps : undefined}
-                            showDragHandle={isReorderMode}
-                          >
-                            {!collapsedGroups[group.id] && (
-                              <Droppable droppableId={`group-${group.id}`} type="habit">
-                                {(provided) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.droppableProps}
-                                    className={viewMode === 'card' ? 'grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4' : 'space-y-1'}
-                                  >
-                                    {groupHabits.map((habit, index) => (
-                                      <Draggable
-                                        key={habit.id}
-                                        draggableId={`habit-${habit.id}`}
-                                        index={index}
-                                        isDragDisabled={!isReorderMode}
-                                      >
-                                        {(provided) => (
-                                          <div
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                          >
-                                            {renderHabit(habit, provided)}
-                                          </div>
-                                        )}
-                                      </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                  </div>
-                                )}
-                              </Droppable>
-                            )}
-                          </Group>
-                        </div>
-                      )}
-                    </Draggable>
-                  )
-                })}
+                <GroupList
+                  groups={groups}
+                  habits={habits}
+                  collapsedGroups={collapsedGroups}
+                  onToggleGroup={toggleGroup}
+                  isReorderMode={isReorderMode}
+                  viewMode={viewMode}
+                  onLog={(habit) => logHabitMutation.mutate(habit)}
+                  onUnlog={(habit) => unlogHabitMutation.mutate(habit)}
+                />
                 {provided.placeholder}
               </div>
             )}
