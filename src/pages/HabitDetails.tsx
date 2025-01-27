@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState, useEffect } from "react"
-import { ArrowLeft, Save, Trash } from "lucide-react"
+import { Save, Trash } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { TopNav } from "@/components/TopNav"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,21 +110,14 @@ const HabitDetails = () => {
   }
 
   return (
-    <div className="container max-w-2xl py-4">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => navigate('/')}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Habit Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <div className="min-h-screen bg-background">
+      <TopNav />
+      <main className="container max-w-2xl py-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Habit Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
@@ -174,8 +168,9 @@ const HabitDetails = () => {
               Save Changes
             </Button>
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   )
 }

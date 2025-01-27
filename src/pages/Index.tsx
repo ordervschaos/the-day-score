@@ -1,14 +1,11 @@
 import { DayScore } from "@/components/DayScore"
 import { HabitList } from "@/components/HabitList"
 import { JournalEntry } from "@/components/JournalEntry"
-import { UserMenu } from "@/components/UserMenu"
+import { TopNav } from "@/components/TopNav"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useEffect, useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { BarChart } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 const Index = () => {
   const navigate = useNavigate()
@@ -53,37 +50,9 @@ const Index = () => {
     }
   })
 
-  const getUserInitials = (email: string) => {
-    return email
-      .split('@')[0]
-      .split('.')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link to="/analytics">
-                <BarChart className="h-5 w-5" />
-              </Link>
-            </Button>
-            {user && (
-              <Avatar>
-                <AvatarFallback>
-                  {getUserInitials(user.email)}
-                </AvatarFallback>
-              </Avatar>
-            )}
-            <UserMenu />
-          </div>
-        </div>
-      </header>
+      <TopNav />
       <main className="container mx-auto py-6 space-y-6 max-w-3xl">
         <DayScore />
         <JournalEntry />
