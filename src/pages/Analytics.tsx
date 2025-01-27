@@ -4,6 +4,15 @@ import { supabase } from "@/integrations/supabase/client"
 import { subMonths } from "date-fns"
 import { AnalyticsFilters } from "@/components/analytics/AnalyticsFilters"
 import { AnalyticsChart } from "@/components/analytics/AnalyticsChart"
+import { Link } from "react-router-dom"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
 const Analytics = () => {
   const [selectedHabit, setSelectedHabit] = useState<string>("all")
@@ -65,7 +74,6 @@ const Analytics = () => {
 
       console.log('Analytics data fetched:', data)
 
-      // Transform the data to match the expected format
       return data.map((item: any) => ({
         date: timeframe === 'daily' ? item.date :
               timeframe === 'weekly' ? item.week_start :
@@ -77,6 +85,20 @@ const Analytics = () => {
 
   return (
     <div className="container mx-auto p-4 space-y-4">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/">Home</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Analytics</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      
       <h1 className="text-2xl font-bold">Analytics</h1>
       
       <AnalyticsFilters
