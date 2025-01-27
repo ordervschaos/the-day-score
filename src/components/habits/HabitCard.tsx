@@ -30,34 +30,35 @@ export const HabitCard = ({
   const navigate = useNavigate()
   
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden h-[280px] relative">
       <div 
-        className={`h-32 flex items-center justify-center ${coverImage ? 'bg-cover bg-center' : 'bg-accent'}`}
+        className={`absolute inset-0 ${coverImage ? 'bg-cover bg-center' : 'bg-accent flex items-center justify-center'}`}
         style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
       >
         {!coverImage && (
           <span className="text-2xl font-display text-accent-foreground">{title}</span>
         )}
       </div>
-      <CardContent className="p-4">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+      <CardContent className="absolute bottom-0 left-0 right-0 p-4 text-white">
         {coverImage && <h3 className="font-medium mb-2">{title}</h3>}
         <div className="flex items-center gap-2">
           {status && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs bg-white/20 hover:bg-white/30">
               {status}
             </Badge>
           )}
           {streak && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs bg-white/20 hover:bg-white/30">
               🔥 {streak}
             </Badge>
           )}
           {logCount > 0 && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs bg-white/20 hover:bg-white/30">
               {logCount}x
             </Badge>
           )}
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-xs border-white/20 text-white">
             {points}
           </Badge>
           <div className="flex-1" />
@@ -65,7 +66,7 @@ export const HabitCard = ({
             variant="ghost"
             size="sm"
             onClick={logCount > 0 ? onUnlog : onLog}
-            className="h-7 w-7 p-0"
+            className="h-7 w-7 p-0 text-white hover:bg-white/20"
           >
             {logCount > 0 ? (
               <Minus className="h-4 w-4" />
@@ -77,7 +78,7 @@ export const HabitCard = ({
             variant="ghost"
             size="sm"
             onClick={() => navigate(`/habits/${id}`)}
-            className="h-7 w-7 p-0"
+            className="h-7 w-7 p-0 text-white hover:bg-white/20"
           >
             <Settings className="h-4 w-4" />
           </Button>
