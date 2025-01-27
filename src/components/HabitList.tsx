@@ -229,7 +229,7 @@ export const HabitList = () => {
 
   return (
     <Card className="bg-background border-none shadow-none">
-      <CardContent className="p-0 sm:p-2">
+      <CardContent className="p-0">
         <HabitListHeader
           isReorderMode={isReorderMode}
           onReorderModeChange={setIsReorderMode}

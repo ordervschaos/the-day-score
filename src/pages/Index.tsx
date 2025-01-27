@@ -53,7 +53,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
-      <main className="container mx-auto py-6 space-y-6 max-w-3xl">
+      <main className="container mx-auto py-2 space-y-4 max-w-3xl px-1 sm:px-4 sm:py-6 sm:space-y-6">
         <DayScore />
         <JournalEntry />
         <HabitList />
