@@ -27,7 +27,7 @@ export const CreateHabitDialog = ({ isOpen, onOpenChange }: CreateHabitDialogPro
       <DialogTrigger asChild>
         <Button variant="outline">
           <Plus className="h-4 w-4 mr-2" />
-           "New Habit"
+           New Habit
         </Button>
       </DialogTrigger>
       <DialogContent>
