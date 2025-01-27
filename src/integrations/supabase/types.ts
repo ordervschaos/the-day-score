@@ -160,6 +160,7 @@ export type Database = {
       habits: {
         Row: {
           aging_settings: Json | null
+          cover_image: string | null
           created_at: string | null
           description: string | null
           group_id: number | null
@@ -177,6 +178,7 @@ export type Database = {
         }
         Insert: {
           aging_settings?: Json | null
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           group_id?: number | null
@@ -194,6 +196,7 @@ export type Database = {
         }
         Update: {
           aging_settings?: Json | null
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           group_id?: number | null
