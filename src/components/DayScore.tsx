@@ -57,8 +57,8 @@ export const DayScore = () => {
           </Button>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" className="min-w-[100px]">
-                {isToday ? "Today" : format(date, "MMM d, yyyy")}
+              <Button variant="ghost" className="min-w-[140px]">
+                {isToday ? "Today" : format(date, "EEE, MMM d, yyyy")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="center">
