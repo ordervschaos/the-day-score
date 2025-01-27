@@ -64,12 +64,14 @@ export const HabitListHeader = ({
         
       </div>
 
-      <div className="flex items-center border rounded-md">
       <ActionButton
           onClick={() => onReorderModeChange(!isReorderMode)}
           icon={<GripHorizontal className="h-4 w-4" />}
           label={isReorderMode ? "Done Reordering" : "Reorder"}
         />
+
+      <div className="flex items-center border rounded-md">
+      
         <Toggle
           pressed={viewMode === 'list'}
           onPressedChange={() => onViewModeChange('list')}
