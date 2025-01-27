@@ -95,7 +95,18 @@ export const TopNav = () => {
                         <BreadcrumbSeparator />
                       </>
                     ) : (
-                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                      <>
+                        {item.label === 'Habit Details' ? (
+                          <>
+                            <BreadcrumbLink asChild>
+                              <Link to={item.path}>{item.label}</Link>
+                            </BreadcrumbLink>
+                            <BreadcrumbSeparator />
+                          </>
+                        ) : (
+                          <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                        )}
+                      </>
                     )}
                   </BreadcrumbItem>
                 ))}
