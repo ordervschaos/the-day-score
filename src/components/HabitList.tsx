@@ -265,6 +265,7 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
                   viewMode={viewMode}
                   onLog={(habit) => logHabitMutation.mutate({ ...habit, date: formattedDate })}
                   onUnlog={(habit) => unlogHabitMutation.mutate({ ...habit, date: formattedDate })}
+                  selectedDate={formattedDate}
                 />
                 {provided.placeholder}
               </div>

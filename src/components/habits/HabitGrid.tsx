@@ -7,11 +7,10 @@ interface HabitGridProps {
   isReorderMode: boolean
   onLog: (habit: any) => void
   onUnlog: (habit: any) => void
+  selectedDate: string
 }
 
-export const HabitGrid = ({ habits, isReorderMode, onLog, onUnlog }: HabitGridProps) => {
-  const today = new Date().toISOString().split('T')[0]
-
+export const HabitGrid = ({ habits, isReorderMode, onLog, onUnlog, selectedDate }: HabitGridProps) => {
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-4">
       {habits.map((habit, index) => (
@@ -38,7 +37,7 @@ export const HabitGrid = ({ habits, isReorderMode, onLog, onUnlog }: HabitGridPr
                     title={habit.name}
                     points={habit.points}
                     logCount={habit.habit_logs?.filter((log: any) => 
-                      log.date === today && log.status === 'completed'
+                      log.date === selectedDate && log.status === 'completed'
                     ).length || 0}
                     coverImage={habit.cover_image}
                     onLog={() => onLog(habit)}

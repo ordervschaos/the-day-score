@@ -1,7 +1,6 @@
 import { Group } from "./Group"
 import { Draggable, Droppable } from "react-beautiful-dnd"
-import { HabitGrid } from "./HabitGrid"
-import { HabitListView } from "./HabitListView"
+import { GripVertical } from "lucide-react"
 
 interface GroupListProps {
   groups: any[]
@@ -12,74 +11,33 @@ interface GroupListProps {
   viewMode: 'card' | 'list'
   onLog: (habit: any) => void
   onUnlog: (habit: any) => void
+  selectedDate: string
 }
 
-export const GroupList = ({
-  groups,
-  habits,
-  collapsedGroups,
+export const GroupList = ({ 
+  groups, 
+  habits, 
+  collapsedGroups, 
   onToggleGroup,
   isReorderMode,
   viewMode,
   onLog,
-  onUnlog
+  onUnlog,
+  selectedDate
 }: GroupListProps) => {
-  // Get ungrouped habits and sort them by position
-  const ungroupedHabits = habits
-    ?.filter(habit => habit.group_id === null)
-    .sort((a, b) => a.position - b.position) || []
+  // Get ungrouped habits
+  const ungroupedHabits = habits.filter(habit => !habit.group_id)
 
   return (
-    <div className="space-y-1">
-      {/* Ungrouped habits section */}
-      <Group
-        id={-1}
-        title="Ungrouped"
-        isCollapsed={collapsedGroups[-1]}
-        onToggleCollapse={() => onToggleGroup(-1)}
-        showDragHandle={isReorderMode}
-      >
-        {!collapsedGroups[-1] && (
-          <Droppable droppableId="ungrouped" type="habit">
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-              >
-                {viewMode === 'card' ? (
-                  <HabitGrid
-                    habits={ungroupedHabits}
-                    isReorderMode={isReorderMode}
-                    onLog={onLog}
-                    onUnlog={onUnlog}
-                  />
-                ) : (
-                  <HabitListView
-                    habits={ungroupedHabits}
-                    isReorderMode={isReorderMode}
-                    onLog={onLog}
-                    onUnlog={onUnlog}
-                  />
-                )}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        )}
-      </Group>
-
-      {/* Regular groups */}
-      {groups?.map((group, groupIndex) => {
-        // Get habits for this group and sort them by position
-        const groupHabits = habits
-          ?.filter(habit => habit.group_id === group.id)
-          .sort((a, b) => a.position - b.position) || []
-
+    <div className="space-y-4">
+      {groups?.map((group, index) => {
+        const groupHabits = habits.filter(habit => habit.group_id === group.id)
+        
         return (
           <Draggable
-            key={group.id}
+            key={`group-${group.id}`}
             draggableId={`group-${group.id}`}
-            index={groupIndex}
+            index={index}
             isDragDisabled={!isReorderMode}
           >
             {(provided) => (
@@ -87,47 +45,55 @@ export const GroupList = ({
                 ref={provided.innerRef}
                 {...provided.draggableProps}
               >
-                <Group
-                  id={group.id}
-                  title={group.title}
-                  isCollapsed={collapsedGroups[group.id]}
-                  onToggleCollapse={() => onToggleGroup(group.id)}
-                  dragHandleProps={isReorderMode ? provided.dragHandleProps : undefined}
-                  showDragHandle={isReorderMode}
-                >
-                  {!collapsedGroups[group.id] && (
-                    <Droppable droppableId={`group-${group.id}`} type="habit">
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
-                        >
-                          {viewMode === 'card' ? (
-                            <HabitGrid
-                              habits={groupHabits}
-                              isReorderMode={isReorderMode}
-                              onLog={onLog}
-                              onUnlog={onUnlog}
-                            />
-                          ) : (
-                            <HabitListView
-                              habits={groupHabits}
-                              isReorderMode={isReorderMode}
-                              onLog={onLog}
-                              onUnlog={onUnlog}
-                            />
-                          )}
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
+                <div className={isReorderMode ? "flex items-start gap-2" : ""}>
+                  {isReorderMode && (
+                    <div {...provided.dragHandleProps}>
+                      <GripVertical className="h-4 w-4 text-muted-foreground mt-2" />
+                    </div>
                   )}
-                </Group>
+                  <div className="flex-1">
+                    <Group
+                      id={group.id}
+                      title={group.title}
+                      habits={groupHabits}
+                      isCollapsed={collapsedGroups[group.id]}
+                      onToggle={() => onToggleGroup(group.id)}
+                      isReorderMode={isReorderMode}
+                      viewMode={viewMode}
+                      onLog={onLog}
+                      onUnlog={onUnlog}
+                      selectedDate={selectedDate}
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </Draggable>
         )
       })}
+
+      {/* Ungrouped habits */}
+      <Droppable droppableId="ungrouped" type="habit">
+        {(provided) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
+            <Group
+              title="Ungrouped"
+              habits={ungroupedHabits}
+              isCollapsed={collapsedGroups[-1]}
+              onToggle={() => onToggleGroup(-1)}
+              isReorderMode={isReorderMode}
+              viewMode={viewMode}
+              onLog={onLog}
+              onUnlog={onUnlog}
+              selectedDate={selectedDate}
+            />
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
     </div>
   )
 }

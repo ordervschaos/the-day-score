@@ -7,11 +7,10 @@ interface HabitListViewProps {
   isReorderMode: boolean
   onLog: (habit: any) => void
   onUnlog: (habit: any) => void
+  selectedDate: string
 }
 
-export const HabitListView = ({ habits, isReorderMode, onLog, onUnlog }: HabitListViewProps) => {
-  const today = new Date().toISOString().split('T')[0]
-
+export const HabitListView = ({ habits, isReorderMode, onLog, onUnlog, selectedDate }: HabitListViewProps) => {
   return (
     <div className="space-y-1">
       {habits.map((habit, index) => (
@@ -38,7 +37,7 @@ export const HabitListView = ({ habits, isReorderMode, onLog, onUnlog }: HabitLi
                     title={habit.name}
                     points={habit.points}
                     logCount={habit.habit_logs?.filter((log: any) => 
-                      log.date === today && log.status === 'completed'
+                      log.date === selectedDate && log.status === 'completed'
                     ).length || 0}
                     onLog={() => onLog(habit)}
                     onUnlog={() => onUnlog(habit)}

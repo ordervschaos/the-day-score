@@ -1,135 +1,85 @@
-import { ChevronDown, ChevronRight, GripVertical, Trash } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/integrations/supabase/client"
-import { useQueryClient } from "@tanstack/react-query"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChevronDown, ChevronRight } from "lucide-react"
+import { Droppable } from "react-beautiful-dnd"
+import { HabitGrid } from "./HabitGrid"
+import { HabitListView } from "./HabitListView"
 
 interface GroupProps {
-  id: number
+  id?: number
   title: string
+  habits: any[]
   isCollapsed: boolean
-  onToggleCollapse: () => void
-  children: React.ReactNode
-  dragHandleProps?: any
-  showDragHandle?: boolean
+  onToggle: () => void
+  isReorderMode: boolean
+  viewMode: 'card' | 'list'
+  onLog: (habit: any) => void
+  onUnlog: (habit: any) => void
+  selectedDate: string
 }
 
 export const Group = ({ 
-  id,
+  id, 
   title, 
+  habits, 
   isCollapsed, 
-  onToggleCollapse, 
-  children,
-  dragHandleProps,
-  showDragHandle
+  onToggle,
+  isReorderMode,
+  viewMode,
+  onLog,
+  onUnlog,
+  selectedDate
 }: GroupProps) => {
-  const { toast } = useToast()
-  const queryClient = useQueryClient()
-
-  const handleDelete = async () => {
-    try {
-      console.log('Deleting group:', id)
-      
-      // First update all habits in this group to have no group
-      const { error: updateError } = await supabase
-        .from('habits')
-        .update({ group_id: null })
-        .eq('group_id', id)
-
-      if (updateError) throw updateError
-
-      // Then delete the group
-      const { error: deleteError } = await supabase
-        .from('habit_groups')
-        .delete()
-        .eq('id', id)
-
-      if (deleteError) throw deleteError
-
-      // Invalidate queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['habits'] })
-      queryClient.invalidateQueries({ queryKey: ['habit-groups'] })
-
-      toast({
-        title: "Success",
-        description: "Group deleted successfully",
-      })
-    } catch (error) {
-      console.error('Error deleting group:', error)
-      toast({
-        title: "Error",
-        description: "Failed to delete group. Please try again.",
-        variant: "destructive"
-      })
-    }
-  }
-
-  // Don't show delete button for the "Ungrouped" section
-  const showDeleteButton = id !== -1
-
   return (
-    <div className="space-y-1">
-      <div 
-        className="w-full flex items-center gap-2 p-2 hover:bg-accent/50 rounded-lg transition-colors"
-      >
-        {showDragHandle && (
-          <div {...dragHandleProps}>
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </div>
-        )}
-        <button 
-          onClick={onToggleCollapse}
-          className="flex items-center gap-2 flex-1"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-          <span className="font-medium">{title}</span>
-        </button>
-        {showDeleteButton && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0 hover:bg-destructive/10 hover:text-destructive"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete group?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will delete the group "{title}". The habits in this group will be moved to "Ungrouped".
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
-      </div>
-      {!isCollapsed && (
-        <div className="pl-2 md:pl-6">
-          {children}
+    <Card>
+      <CardHeader className="py-3">
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-0 h-6 w-6 hover:bg-accent"
+            onClick={onToggle}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+          <CardTitle className="text-base font-medium ml-2">{title}</CardTitle>
         </div>
+      </CardHeader>
+      {!isCollapsed && (
+        <CardContent className="pt-0">
+          <Droppable droppableId={id ? `group-${id}` : 'ungrouped'} type="habit">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {viewMode === 'card' ? (
+                  <HabitGrid
+                    habits={habits}
+                    isReorderMode={isReorderMode}
+                    onLog={onLog}
+                    onUnlog={onUnlog}
+                    selectedDate={selectedDate}
+                  />
+                ) : (
+                  <HabitListView
+                    habits={habits}
+                    isReorderMode={isReorderMode}
+                    onLog={onLog}
+                    onUnlog={onUnlog}
+                    selectedDate={selectedDate}
+                  />
+                )}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </CardContent>
       )}
-    </div>
+    </Card>
   )
 }
