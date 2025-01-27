@@ -126,7 +126,7 @@ export const Group = ({
         )}
       </div>
       {!isCollapsed && (
-        <div className="pl-6">
+        <div className="pl-2 md:pl-6">
           {children}
         </div>
       )}
