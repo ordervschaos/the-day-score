@@ -9,30 +9,40 @@ interface AnalyticsChartProps {
 
 export const AnalyticsChart = ({ data, timeframe }: AnalyticsChartProps) => {
   const formatXAxis = (dateStr: string) => {
-    const date = parseISO(dateStr)
-    switch (timeframe) {
-      case "daily":
-        return format(date, 'MMM d')
-      case "weekly":
-        return `Week ${getWeek(date)}`
-      case "monthly":
-        return format(date, 'MMM yyyy')
-      default:
-        return dateStr
+    try {
+      const date = parseISO(dateStr)
+      switch (timeframe) {
+        case "daily":
+          return format(date, 'MMM d')
+        case "weekly":
+          return `Week ${getWeek(date)}`
+        case "monthly":
+          return format(date, 'MMM yyyy')
+        default:
+          return dateStr
+      }
+    } catch (e) {
+      console.error('Error formatting date:', e, dateStr)
+      return dateStr
     }
   }
 
   const formatTooltipLabel = (dateStr: string) => {
-    const date = parseISO(dateStr)
-    switch (timeframe) {
-      case "daily":
-        return format(date, 'MMM d, yyyy')
-      case "weekly":
-        return `Week of ${format(date, 'MMM d, yyyy')}`
-      case "monthly":
-        return format(date, 'MMMM yyyy')
-      default:
-        return dateStr
+    try {
+      const date = parseISO(dateStr)
+      switch (timeframe) {
+        case "daily":
+          return format(date, 'MMM d, yyyy')
+        case "weekly":
+          return `Week of ${format(date, 'MMM d, yyyy')}`
+        case "monthly":
+          return format(date, 'MMMM yyyy')
+        default:
+          return dateStr
+      }
+    } catch (e) {
+      console.error('Error formatting tooltip date:', e, dateStr)
+      return dateStr
     }
   }
 

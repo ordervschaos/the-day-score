@@ -23,20 +23,7 @@ const Analytics = () => {
       const endDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : startDate
       const habitId = selectedHabit === "all" ? null : parseInt(selectedHabit)
 
-      let functionName: string
-      switch (timeframe) {
-        case "daily":
-          functionName = "get_habit_points_daily"
-          break
-        case "weekly":
-          functionName = "get_habit_points_weekly"
-          break
-        case "monthly":
-          functionName = "get_habit_points_monthly"
-          break
-        default:
-          functionName = "get_habit_points_daily"
-      }
+      const functionName = `get_habit_points_${timeframe}` as const
 
       const { data, error } = await supabase
         .rpc(functionName, {
