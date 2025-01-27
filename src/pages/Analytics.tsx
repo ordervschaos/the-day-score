@@ -21,69 +21,50 @@ const Analytics = () => {
     queryFn: async () => {
       console.log('Fetching habit logs for analytics:', { timeframe, selectedHabit, dateRange })
       
-      let query = supabase
-        .from('habit_logs')
-        .select('points, date, habit_id')
-        .eq('status', 'completed')
-
-      if (dateRange.from) {
-        query = query.gte('date', dateRange.from.toISOString().split('T')[0])
-      }
-      if (dateRange.to) {
-        query = query.lte('date', dateRange.to.toISOString().split('T')[0])
+      if (!dateRange.from || !dateRange.to) {
+        console.log('Date range is incomplete')
+        return []
       }
 
-      if (selectedHabit !== "all") {
-        query = query.eq('habit_id', parseInt(selectedHabit))
+      const startDate = dateRange.from.toISOString().split('T')[0]
+      const endDate = dateRange.to.toISOString().split('T')[0]
+      const habitId = selectedHabit !== "all" ? parseInt(selectedHabit) : null
+
+      let functionName = ''
+      switch (timeframe) {
+        case 'daily':
+          functionName = 'get_habit_points_daily'
+          break
+        case 'weekly':
+          functionName = 'get_habit_points_weekly'
+          break
+        case 'monthly':
+          functionName = 'get_habit_points_monthly'
+          break
       }
 
-      const { data, error } = await query
-      if (error) throw error
+      const { data, error } = await supabase
+        .rpc(functionName, {
+          p_owner_id: (await supabase.auth.getUser()).data.user?.id,
+          p_start_date: startDate,
+          p_end_date: endDate,
+          p_habit_id: habitId
+        })
 
-      // Group data based on timeframe
-      if (timeframe === "daily") {
-        return data.reduce((acc: any[], log: any) => {
-          const existingDay = acc.find(item => item.date === log.date)
-          if (existingDay) {
-            existingDay.points += (log.points || 0)
-          } else {
-            acc.push({
-              date: log.date,
-              points: log.points || 0
-            })
-          }
-          return acc
-        }, []).sort((a: any, b: any) => a.date.localeCompare(b.date))
-      } else if (timeframe === "weekly") {
-        const weeklyData = data.reduce((acc: any, log: any) => {
-          const date = new Date(log.date)
-          const weekKey = `${date.getFullYear()}-W${getWeek(date)}`
-          if (!acc[weekKey]) {
-            acc[weekKey] = {
-              date: log.date,
-              points: 0
-            }
-          }
-          acc[weekKey].points += (log.points || 0)
-          return acc
-        }, {})
-        
-        return Object.values(weeklyData).sort((a: any, b: any) => a.date.localeCompare(b.date))
-      } else {
-        const monthlyData = data.reduce((acc: any, log: any) => {
-          const monthKey = log.date.substring(0, 7) // YYYY-MM format
-          if (!acc[monthKey]) {
-            acc[monthKey] = {
-              date: `${monthKey}-01`, // First day of the month
-              points: 0
-            }
-          }
-          acc[monthKey].points += (log.points || 0)
-          return acc
-        }, {})
-
-        return Object.values(monthlyData).sort((a: any, b: any) => a.date.localeCompare(b.date))
+      if (error) {
+        console.error('Error fetching analytics data:', error)
+        throw error
       }
+
+      console.log('Analytics data fetched:', data)
+
+      // Transform the data to match the expected format
+      return data.map((item: any) => ({
+        date: timeframe === 'daily' ? item.date :
+              timeframe === 'weekly' ? item.week_start :
+              item.month_start,
+        points: Number(item.points)
+      }))
     }
   })
 
@@ -101,7 +82,7 @@ const Analytics = () => {
       />
 
       <AnalyticsChart
-        data={habitLogs}
+        data={habitLogs || []}
         timeframe={timeframe}
       />
     </div>
