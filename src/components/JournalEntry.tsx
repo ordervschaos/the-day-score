@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Pencil, Check } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Textarea } from "./ui/textarea"
@@ -26,7 +26,7 @@ export const JournalEntry = () => {
   const [content, setContent] = useState(entries?.content || "")
 
   // Update content when entries changes
-  useState(() => {
+  useEffect(() => {
     if (entries?.content) {
       setContent(entries.content)
     }
