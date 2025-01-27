@@ -339,6 +339,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_habit_points_daily: {
+        Args: {
+          p_owner_id: string
+          p_start_date: string
+          p_end_date: string
+          p_habit_id?: number
+        }
+        Returns: {
+          date: string
+          points: number
+        }[]
+      }
+      get_habit_points_monthly: {
+        Args: {
+          p_owner_id: string
+          p_start_date: string
+          p_end_date: string
+          p_habit_id?: number
+        }
+        Returns: {
+          month_start: string
+          points: number
+        }[]
+      }
+      get_habit_points_weekly: {
+        Args: {
+          p_owner_id: string
+          p_start_date: string
+          p_end_date: string
+          p_habit_id?: number
+        }
+        Returns: {
+          week_start: string
+          points: number
+        }[]
+      }
       update_notebook_name: {
         Args: {
           notebook_id: number

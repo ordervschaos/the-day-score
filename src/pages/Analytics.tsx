@@ -30,7 +30,7 @@ const Analytics = () => {
       const endDate = dateRange.to.toISOString().split('T')[0]
       const habitId = selectedHabit !== "all" ? parseInt(selectedHabit) : null
 
-      let functionName = ''
+      let functionName: 'get_habit_points_daily' | 'get_habit_points_weekly' | 'get_habit_points_monthly'
       switch (timeframe) {
         case 'daily':
           functionName = 'get_habit_points_daily'
@@ -41,6 +41,8 @@ const Analytics = () => {
         case 'monthly':
           functionName = 'get_habit_points_monthly'
           break
+        default:
+          functionName = 'get_habit_points_daily'
       }
 
       const { data, error } = await supabase
@@ -54,6 +56,11 @@ const Analytics = () => {
       if (error) {
         console.error('Error fetching analytics data:', error)
         throw error
+      }
+
+      if (!data) {
+        console.log('No data returned from analytics query')
+        return []
       }
 
       console.log('Analytics data fetched:', data)
