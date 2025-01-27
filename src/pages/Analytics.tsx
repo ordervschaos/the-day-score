@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { subMonths } from "date-fns"
+import { format } from "date-fns"
 import { AnalyticsFilters } from "@/components/analytics/AnalyticsFilters"
 import { AnalyticsChart } from "@/components/analytics/AnalyticsChart"
 import { TopNav } from "@/components/TopNav"
@@ -9,24 +9,45 @@ import { supabase } from "@/integrations/supabase/client"
 const Analytics = () => {
   const [selectedHabit, setSelectedHabit] = useState<string>("all")
   const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly">("weekly")
-  const [dateRange, setDateRange] = useState({
-    start: subMonths(new Date(), 1),
-    end: new Date(),
+  const [dateRange, setDateRange] = useState<{ from: Date; to?: Date }>({
+    from: new Date(),
+    to: new Date()
   })
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['analytics', selectedHabit, timeframe, dateRange],
     queryFn: async () => {
+      console.log('Fetching analytics data:', { selectedHabit, timeframe, dateRange })
+      
+      const startDate = format(dateRange.from, 'yyyy-MM-dd')
+      const endDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : startDate
+      const habitId = selectedHabit === "all" ? null : parseInt(selectedHabit)
+
+      let functionName: string
+      switch (timeframe) {
+        case "daily":
+          functionName = "get_habit_points_daily"
+          break
+        case "weekly":
+          functionName = "get_habit_points_weekly"
+          break
+        case "monthly":
+          functionName = "get_habit_points_monthly"
+          break
+        default:
+          functionName = "get_habit_points_daily"
+      }
+
       const { data, error } = await supabase
-        .from('analytics')
-        .select('*')
-        .eq('habit_id', selectedHabit === "all" ? null : selectedHabit)
-        .gte('date', dateRange.start)
-        .lte('date', dateRange.end)
-        .order('date', { ascending: true })
+        .rpc(functionName, {
+          p_owner_id: (await supabase.auth.getUser()).data.user?.id,
+          p_start_date: startDate,
+          p_end_date: endDate,
+          p_habit_id: habitId
+        })
 
       if (error) throw error
-      return data
+      return data || []
     }
   })
 
@@ -41,11 +62,11 @@ const Analytics = () => {
         
         <AnalyticsFilters
           selectedHabit={selectedHabit}
-          onHabitChange={setSelectedHabit}
+          setSelectedHabit={setSelectedHabit}
           timeframe={timeframe}
-          onTimeframeChange={setTimeframe}
+          setTimeframe={setTimeframe}
           dateRange={dateRange}
-          onDateRangeChange={setDateRange}
+          setDateRange={setDateRange}
         />
 
         <AnalyticsChart data={data || []} timeframe={timeframe} />
