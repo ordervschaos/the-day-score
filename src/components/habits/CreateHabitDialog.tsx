@@ -27,8 +27,7 @@ export const CreateHabitDialog = ({ isOpen, onOpenChange }: CreateHabitDialogPro
       <DialogTrigger asChild>
         <Button variant="outline">
           <Plus className="h-4 w-4 mr-2" />
-          {!isMobile && "New Habit"}
-          {isMobile && <span className="sr-only">New Habit</span>}
+           "New Habit"
         </Button>
       </DialogTrigger>
       <DialogContent>
