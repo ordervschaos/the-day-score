@@ -49,34 +49,24 @@ export const HabitListHeader = ({
 
   return (
     <div className="flex gap-2 mb-4">
-      <CreateHabitDialog 
-        isOpen={isNewHabitOpen}
-        onOpenChange={setIsNewHabitOpen}
-      />
-      <CreateFolderDialog
-        isOpen={isNewFolderOpen}
-        onOpenChange={setIsNewFolderOpen}
-      />
-      
-      <ActionButton
-        onClick={() => onReorderModeChange(!isReorderMode)}
-        icon={<GripHorizontal className="h-4 w-4" />}
-        label={isReorderMode ? "Done Reordering" : "Reorder"}
-      />
-      
-      <ActionButton
-        onClick={() => setIsNewHabitOpen(true)}
-        icon={<Plus className="h-4 w-4" />}
-        label="New Habit"
-      />
-      
-      <ActionButton
-        onClick={() => setIsNewFolderOpen(true)}
-        icon={<FolderPlus className="h-4 w-4" />}
-        label="New Folder"
-      />
+      <div className="flex gap-2 flex-1">
+        <ActionButton
+          onClick={() => onReorderModeChange(!isReorderMode)}
+          icon={<GripHorizontal className="h-4 w-4" />}
+          label={isReorderMode ? "Done Reordering" : "Reorder"}
+        />
+        
+        <CreateHabitDialog 
+          isOpen={isNewHabitOpen}
+          onOpenChange={setIsNewHabitOpen}
+        />
+        
+        <CreateFolderDialog
+          isOpen={isNewFolderOpen}
+          onOpenChange={setIsNewFolderOpen}
+        />
+      </div>
 
-      <div className="flex-1" />
       <div className="flex items-center border rounded-md">
         <Toggle
           pressed={viewMode === 'list'}

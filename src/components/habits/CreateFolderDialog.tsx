@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { FolderPlus } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { useCreateFolder } from "@/hooks/habits/useHabitMutations"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface CreateFolderDialogProps {
   isOpen: boolean
@@ -17,7 +18,7 @@ export const CreateFolderDialog = ({ isOpen, onOpenChange }: CreateFolderDialogP
       title: ""
     }
   })
-
+  const isMobile = useIsMobile()
   const createFolderMutation = useCreateFolder()
 
   return (
@@ -25,7 +26,8 @@ export const CreateFolderDialog = ({ isOpen, onOpenChange }: CreateFolderDialogP
       <DialogTrigger asChild>
         <Button variant="outline">
           <FolderPlus className="h-4 w-4 mr-2" />
-          New Folder
+          {!isMobile && "New Folder"}
+          {isMobile && <span className="sr-only">New Folder</span>}
         </Button>
       </DialogTrigger>
       <DialogContent>

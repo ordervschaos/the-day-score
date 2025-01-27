@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { useCreateHabit } from "@/hooks/habits/useHabitMutations"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface CreateHabitDialogProps {
   isOpen: boolean
@@ -18,15 +19,16 @@ export const CreateHabitDialog = ({ isOpen, onOpenChange }: CreateHabitDialogPro
       points: 1
     }
   })
-
+  const isMobile = useIsMobile()
   const createHabitMutation = useCreateHabit()
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button>
+        <Button variant="outline">
           <Plus className="h-4 w-4 mr-2" />
-          New Habit
+          {!isMobile && "New Habit"}
+          {isMobile && <span className="sr-only">New Habit</span>}
         </Button>
       </DialogTrigger>
       <DialogContent>
