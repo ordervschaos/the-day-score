@@ -12,9 +12,13 @@ import {
 } from "./ui/popover"
 import { useState } from "react"
 
-export const DayScore = () => {
-  const [date, setDate] = useState<Date>(new Date())
-  const formattedDate = date.toISOString().split('T')[0]
+interface DayScoreProps {
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+}
+
+export const DayScore = ({ selectedDate, onDateChange }: DayScoreProps) => {
+  const formattedDate = selectedDate.toISOString().split('T')[0]
 
   const { data: habitLogs } = useQuery({
     queryKey: ['habit-logs', formattedDate],
@@ -39,11 +43,11 @@ export const DayScore = () => {
   const totalPoints = habitLogs?.reduce((sum, log) => sum + (log.points || 0), 0) || 0
 
   const handlePreviousDay = () => {
-    setDate(prev => subDays(prev, 1))
+    onDateChange(subDays(selectedDate, 1))
   }
 
   const handleNextDay = () => {
-    setDate(prev => addDays(prev, 1))
+    onDateChange(addDays(selectedDate, 1))
   }
 
   const isToday = formattedDate === new Date().toISOString().split('T')[0]
@@ -58,14 +62,14 @@ export const DayScore = () => {
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" className="min-w-[140px]">
-                {isToday ? "Today" : format(date, "EEE, MMM d, yyyy")}
+                {isToday ? "Today" : format(selectedDate, "EEE, MMM d, yyyy")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="center">
               <Calendar
                 mode="single"
-                selected={date}
-                onSelect={(newDate) => newDate && setDate(newDate)}
+                selected={selectedDate}
+                onSelect={(newDate) => newDate && onDateChange(newDate)}
                 initialFocus
               />
             </PopoverContent>

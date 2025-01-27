@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom"
 const Index = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState<any>(null)
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -54,9 +55,9 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <TopNav />
       <main className="container mx-auto py-2 space-y-4 max-w-3xl px-1 sm:px-4 sm:py-6 sm:space-y-6">
-        <DayScore />
-        <JournalEntry />
-        <HabitList />
+        <DayScore selectedDate={selectedDate} onDateChange={setSelectedDate} />
+        <JournalEntry selectedDate={selectedDate} />
+        <HabitList selectedDate={selectedDate} />
       </main>
     </div>
   )

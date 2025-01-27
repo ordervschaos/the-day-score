@@ -8,12 +8,17 @@ import { useLogHabit, useUnlogHabit, useUpdatePosition } from "@/hooks/habits/us
 import { HabitListHeader } from "./habits/HabitListHeader"
 import { GroupList } from "./habits/GroupList"
 
-export const HabitList = () => {
+interface HabitListProps {
+  selectedDate: Date;
+}
+
+export const HabitList = ({ selectedDate }: HabitListProps) => {
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({})
   const [isReorderMode, setIsReorderMode] = useState(false)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
+  const formattedDate = selectedDate.toISOString().split('T')[0]
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery({
     queryKey: ['habit-groups'],
@@ -31,7 +36,7 @@ export const HabitList = () => {
   })
 
   const { data: habits, isLoading: isLoadingHabits } = useQuery({
-    queryKey: ['habits'],
+    queryKey: ['habits', formattedDate],
     queryFn: async () => {
       console.log('Fetching habits...')
       const { data, error } = await supabase
@@ -48,8 +53,15 @@ export const HabitList = () => {
         .order('position', { ascending: true })
       
       if (error) throw error
-      console.log('Successfully fetched habits:', data)
-      return data
+
+      // Filter habit logs for the selected date
+      const habitsWithFilteredLogs = data.map(habit => ({
+        ...habit,
+        habit_logs: habit.habit_logs.filter((log: any) => log.date === formattedDate)
+      }))
+
+      console.log('Successfully fetched habits:', habitsWithFilteredLogs)
+      return habitsWithFilteredLogs
     }
   })
 
@@ -251,8 +263,8 @@ export const HabitList = () => {
                   onToggleGroup={toggleGroup}
                   isReorderMode={isReorderMode}
                   viewMode={viewMode}
-                  onLog={(habit) => logHabitMutation.mutate(habit)}
-                  onUnlog={(habit) => unlogHabitMutation.mutate(habit)}
+                  onLog={(habit) => logHabitMutation.mutate({ ...habit, date: formattedDate })}
+                  onUnlog={(habit) => unlogHabitMutation.mutate({ ...habit, date: formattedDate })}
                 />
                 {provided.placeholder}
               </div>

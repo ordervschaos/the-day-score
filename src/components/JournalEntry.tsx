@@ -8,27 +8,33 @@ import { addJournalEntry, fetchJournalEntries } from "@/lib/api"
 import { format } from "date-fns"
 import { useToast } from "./ui/use-toast"
 
-export const JournalEntry = () => {
+interface JournalEntryProps {
+  selectedDate: Date;
+}
+
+export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const { toast } = useToast()
   const queryClient = useQueryClient()
-  const today = format(new Date(), "yyyy-MM-dd")
+  const formattedDate = selectedDate.toISOString().split('T')[0]
 
-  // Fetch today's journal entry
+  // Fetch journal entry for selected date
   const { data: entries } = useQuery({
-    queryKey: ['journal', today],
+    queryKey: ['journal', formattedDate],
     queryFn: async () => {
       const entries = await fetchJournalEntries(1)
-      return entries?.find(entry => entry.date === today) || null
+      return entries?.find(entry => entry.date === formattedDate) || null
     }
   })
 
-  const [content, setContent] = useState(entries?.content || "")
+  const [content, setContent] = useState("")
 
   // Update content when entries changes
   useEffect(() => {
     if (entries?.content) {
       setContent(entries.content)
+    } else {
+      setContent("")
     }
   }, [entries?.content])
 
@@ -37,7 +43,7 @@ export const JournalEntry = () => {
     mutationFn: async () => {
       return await addJournalEntry({
         content,
-        date: today
+        date: formattedDate
       })
     },
     onSuccess: () => {
@@ -49,7 +55,7 @@ export const JournalEntry = () => {
       })
     },
     onError: (error) => {
-      console.error("Error saving journal entry:", error)
+      console.error('Error saving journal entry:', error)
       toast({
         title: "Error",
         description: "Failed to save your journal entry. Please try again.",
