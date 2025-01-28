@@ -5,7 +5,7 @@ import { format, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, sta
 import { DateRange } from "react-day-picker"
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DateRangePicker } from "@/components/DateRangePicker"
+import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { useState } from "react"
 import { addMonths, subMonths } from "date-fns"
 
