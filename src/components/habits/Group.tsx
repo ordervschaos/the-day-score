@@ -50,7 +50,7 @@ export const Group = ({
         </div>
       </CardHeader>
       {!isCollapsed && (
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 pl-2 md:pl-6">
           <Droppable droppableId={id ? `group-${id}` : 'ungrouped'} type="habit">
             {(provided) => (
               <div
