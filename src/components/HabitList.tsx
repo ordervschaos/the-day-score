@@ -204,13 +204,19 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
 
       console.log('Position updates:', updates)
 
-      // Create optimistic update
-      const optimisticHabits = habits.map(habit => {
-        const update = updates.find(u => u.id === habit.id)
-        if (update) {
-          return { ...habit, ...update }
+      // Create optimistic update by creating a new array with all habits
+      const optimisticHabits = [...habits]
+
+      // Update positions and groups in the optimistic update
+      updates.forEach(update => {
+        const habitIndex = optimisticHabits.findIndex(h => h.id === update.id)
+        if (habitIndex !== -1) {
+          optimisticHabits[habitIndex] = {
+            ...optimisticHabits[habitIndex],
+            group_id: update.group_id,
+            position: update.position
+          }
         }
-        return habit
       })
 
       // Apply optimistic update
