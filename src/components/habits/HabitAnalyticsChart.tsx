@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { format, subMonths } from "date-fns"
+import { format, subMonths, eachDayOfInterval, startOfWeek, endOfWeek, eachWeekOfInterval, startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns"
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
@@ -30,10 +30,8 @@ export const HabitAnalyticsChart = ({ habitId }: HabitAnalyticsChartProps) => {
       const startDate = format(dateRange.from, 'yyyy-MM-dd')
       const endDate = format(dateRange.to, 'yyyy-MM-dd')
 
-      const functionName = `get_habit_points_${timeframe}`
-      
       const { data, error } = await supabase
-        .rpc(functionName, {
+        .rpc(`get_habit_points_${timeframe}`, {
           p_owner_id: (await supabase.auth.getUser()).data.user?.id,
           p_start_date: startDate,
           p_end_date: endDate,
@@ -41,7 +39,48 @@ export const HabitAnalyticsChart = ({ habitId }: HabitAnalyticsChartProps) => {
         })
 
       if (error) throw error
-      return data
+
+      // Generate all dates in the range based on timeframe
+      let allDates: { date: string; points: number }[] = []
+      
+      if (timeframe === "daily") {
+        const days = eachDayOfInterval({ start: dateRange.from, end: dateRange.to })
+        allDates = days.map(day => ({
+          date: format(day, 'yyyy-MM-dd'),
+          points: 0
+        }))
+      } else if (timeframe === "weekly") {
+        const weeks = eachWeekOfInterval({ start: dateRange.from, end: dateRange.to })
+        allDates = weeks.map(week => ({
+          date: format(startOfWeek(week), 'yyyy-MM-dd'),
+          points: 0
+        }))
+      } else {
+        const months = eachMonthOfInterval({ start: dateRange.from, end: dateRange.to })
+        allDates = months.map(month => ({
+          date: format(startOfMonth(month), 'yyyy-MM-dd'),
+          points: 0
+        }))
+      }
+
+      // Merge the database data with the generated dates
+      const mergedData = allDates.map(date => {
+        const dbEntry = data.find(d => {
+          if (timeframe === "daily") {
+            return d.date === date.date
+          } else if (timeframe === "weekly") {
+            return d.week_start === date.date
+          } else {
+            return d.month_start === date.date
+          }
+        })
+        return {
+          date: date.date,
+          points: dbEntry ? Number(dbEntry.points) : 0
+        }
+      })
+
+      return mergedData
     }
   })
 
