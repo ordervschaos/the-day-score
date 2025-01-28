@@ -13,7 +13,13 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({})
   const [isReorderMode, setIsReorderMode] = useState(false)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
-  const formattedDate = selectedDate.toISOString().split('T')[0]
+  
+  // Format date in local timezone
+  const formattedDate = new Date(selectedDate.getTime())
+    .toLocaleDateString('en-CA') // This formats as YYYY-MM-DD in local timezone
+
+  console.log('Selected date:', selectedDate)
+  console.log('Formatted date for DB:', formattedDate)
 
   const { data: groups, isLoading: isLoadingGroups } = useHabitGroups()
   const { data: habits, isLoading: isLoadingHabits } = useHabits(formattedDate)
