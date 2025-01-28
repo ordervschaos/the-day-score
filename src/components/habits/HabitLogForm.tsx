@@ -3,7 +3,6 @@ import { Calendar } from "@/components/ui/calendar"
 import { HabitCard } from "./HabitCard"
 import { useState } from "react"
 import { useLogHabit, useUnlogHabit } from "@/hooks/habits/useHabitMutations"
-import { format } from "date-fns"
 
 interface HabitLogFormProps {
   habit: {
@@ -18,10 +17,15 @@ interface HabitLogFormProps {
 
 export const HabitLogForm = ({ habit }: HabitLogFormProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const formattedDate = format(selectedDate, 'yyyy-MM-dd')
+  // Use the same date formatting as the index page
+  const formattedDate = selectedDate.toISOString().split('T')[0]
   
   const logHabitMutation = useLogHabit()
   const unlogHabitMutation = useUnlogHabit()
+
+  console.log('Selected date:', selectedDate)
+  console.log('Formatted date:', formattedDate)
+  console.log('Current habit logs:', habit.habit_logs)
 
   return (
     <Card>
