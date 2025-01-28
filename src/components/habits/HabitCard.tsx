@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Check, Minus, Settings } from "lucide-react"
+import { Check, Minus, Plus, Settings } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 
@@ -13,6 +13,7 @@ interface HabitCardProps {
   streak?: number
   logCount: number
   coverImage?: string | null
+  isMultiplePerDay?: boolean
   onLog: () => void
   onUnlog?: () => void
 }
@@ -25,11 +26,63 @@ export const HabitCard = ({
   streak, 
   logCount, 
   coverImage,
+  isMultiplePerDay = false,
   onLog, 
   onUnlog
 }: HabitCardProps) => {
   const navigate = useNavigate()
   const isCompleted = logCount > 0
+  
+  const renderActionButton = () => {
+    if (isMultiplePerDay) {
+      return (
+        <div className="flex items-center gap-1">
+          {logCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onUnlog}
+              className={cn(
+                "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
+                isCompleted && "hover:bg-green-500/20"
+              )}
+            >
+              <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onLog}
+            className={cn(
+              "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
+              isCompleted && "hover:bg-green-500/20"
+            )}
+          >
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+          </Button>
+        </div>
+      )
+    }
+
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={logCount > 0 ? onUnlog : onLog}
+        className={cn(
+          "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
+          isCompleted && "hover:bg-green-500/20"
+        )}
+      >
+        {logCount > 0 ? (
+          <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+        ) : (
+          <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+        )}
+      </Button>
+    )
+  }
   
   return (
     <Card className={cn(
@@ -93,21 +146,7 @@ export const HabitCard = ({
             {points}
           </Badge>
           <div className="flex-1" />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={logCount > 0 ? onUnlog : onLog}
-            className={cn(
-              "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
-              isCompleted && "hover:bg-green-500/20"
-            )}
-          >
-            {logCount > 0 ? (
-              <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
-            ) : (
-              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-            )}
-          </Button>
+          {renderActionButton()}
           <Button
             variant="ghost"
             size="sm"

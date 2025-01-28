@@ -39,6 +39,7 @@ export const HabitListView = ({ habits, isReorderMode, onLog, onUnlog, selectedD
                     logCount={habit.habit_logs?.filter((log: any) => 
                       log.date === selectedDate && log.status === 'completed'
                     ).length || 0}
+                    isMultiplePerDay={habit.multiple_per_day}
                     onLog={() => onLog(habit)}
                     onUnlog={() => onUnlog(habit)}
                     index={index}

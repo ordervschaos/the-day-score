@@ -40,6 +40,7 @@ export const HabitGrid = ({ habits, isReorderMode, onLog, onUnlog, selectedDate 
                       log.date === selectedDate && log.status === 'completed'
                     ).length || 0}
                     coverImage={habit.cover_image}
+                    isMultiplePerDay={habit.multiple_per_day}
                     onLog={() => onLog(habit)}
                     onUnlog={() => onUnlog(habit)}
                   />
