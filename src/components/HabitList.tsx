@@ -54,7 +54,6 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
       
       if (error) throw error
 
-      // Filter habit logs for the selected date
       const habitsWithFilteredLogs = data.map(habit => ({
         ...habit,
         habit_logs: habit.habit_logs.filter((log: any) => log.date === formattedDate)
@@ -147,77 +146,37 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
     })
 
     try {
-      // Get habits in source group
-      const sourceHabits = habits
-        .filter(h => h.group_id === sourceGroupId)
-        .sort((a, b) => a.position - b.position)
+      // Create a copy of all habits
+      const optimisticHabits = [...habits]
 
-      // Get habits in destination group
-      const destinationHabits = sourceGroupId === destinationGroupId
-        ? sourceHabits // If same group, use source habits
-        : habits
-            .filter(h => h.group_id === destinationGroupId)
-            .sort((a, b) => a.position - b.position)
+      // Find the moved habit
+      const movedHabitIndex = optimisticHabits.findIndex(h => h.id === habitId)
+      const movedHabit = optimisticHabits[movedHabitIndex]
 
-      // Remove habit from source array
-      const [movedHabit] = sourceHabits.splice(source.index, 1)
+      // Remove the habit from its current position
+      optimisticHabits.splice(movedHabitIndex, 1)
 
-      // Insert habit into destination array
-      if (sourceGroupId === destinationGroupId) {
-        sourceHabits.splice(destination.index, 0, movedHabit)
-      } else {
-        destinationHabits.splice(destination.index, 0, movedHabit)
-      }
+      // Find where to insert the habit in the destination group
+      const destinationGroupHabits = optimisticHabits.filter(h => h.group_id === destinationGroupId)
+      const insertIndex = optimisticHabits.findIndex(h => h.group_id === destinationGroupId) + destination.index
 
-      // Prepare updates array
-      const updates = []
-
-      // Update the moved habit
-      updates.push({
-        id: habitId,
+      // Insert the habit at the new position
+      optimisticHabits.splice(insertIndex, 0, {
+        ...movedHabit,
         group_id: destinationGroupId,
         position: destination.index
       })
 
-      // Update positions in source group if different groups
-      if (sourceGroupId !== destinationGroupId) {
-        sourceHabits.forEach((habit, index) => {
-          updates.push({
-            id: habit.id,
-            group_id: sourceGroupId,
-            position: index
-          })
-        })
-      }
-
-      // Update positions in destination group
-      const habitsToUpdate = sourceGroupId === destinationGroupId ? sourceHabits : destinationHabits
-      habitsToUpdate.forEach((habit, index) => {
-        if (habit.id !== habitId) {
-          updates.push({
-            id: habit.id,
-            group_id: destinationGroupId,
-            position: index
-          })
-        }
-      })
+      // Update positions for all affected habits
+      const updates = optimisticHabits
+        .filter(h => h.group_id === sourceGroupId || h.group_id === destinationGroupId)
+        .map((habit, index) => ({
+          id: habit.id,
+          group_id: habit.group_id,
+          position: index
+        }))
 
       console.log('Position updates:', updates)
-
-      // Create optimistic update by creating a new array with all habits
-      const optimisticHabits = [...habits]
-
-      // Update positions and groups in the optimistic update
-      updates.forEach(update => {
-        const habitIndex = optimisticHabits.findIndex(h => h.id === update.id)
-        if (habitIndex !== -1) {
-          optimisticHabits[habitIndex] = {
-            ...optimisticHabits[habitIndex],
-            group_id: update.group_id,
-            position: update.position
-          }
-        }
-      })
 
       // Apply optimistic update
       queryClient.setQueryData(['habits', formattedDate], optimisticHabits)
@@ -300,5 +259,4 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         </DragDropContext>
       </CardContent>
     </Card>
-  )
 }
