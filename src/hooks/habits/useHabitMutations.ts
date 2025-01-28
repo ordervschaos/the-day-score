@@ -25,7 +25,9 @@ export const useLogHabit = () => {
       return data
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['habits', variables.date] })
+      // Invalidate both the habits list and the specific habit queries
+      queryClient.invalidateQueries({ queryKey: ['habits'] })
+      queryClient.invalidateQueries({ queryKey: ['habits', variables.id] })
       queryClient.invalidateQueries({ queryKey: ['habit-logs', variables.date] })
       toast({
         title: "Success!",
@@ -59,7 +61,9 @@ export const useUnlogHabit = () => {
       if (error) throw error
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['habits', variables.date] })
+      // Invalidate both the habits list and the specific habit queries
+      queryClient.invalidateQueries({ queryKey: ['habits'] })
+      queryClient.invalidateQueries({ queryKey: ['habits', variables.id] })
       queryClient.invalidateQueries({ queryKey: ['habit-logs', variables.date] })
       toast({
         title: "Success!",

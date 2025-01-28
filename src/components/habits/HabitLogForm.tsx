@@ -46,8 +46,20 @@ export const HabitLogForm = ({ habit }: HabitLogFormProps) => {
             ).length || 0}
             coverImage={habit.cover_image}
             isMultiplePerDay={habit.multiple_per_day}
-            onLog={() => logHabitMutation.mutate({ ...habit, date: formattedDate })}
-            onUnlog={() => unlogHabitMutation.mutate({ ...habit, date: formattedDate })}
+            onLog={() => logHabitMutation.mutate({ 
+              ...habit, 
+              date: formattedDate,
+              habit_logs: habit.habit_logs?.filter((log: any) => 
+                log.date === formattedDate && log.status === 'completed'
+              )
+            })}
+            onUnlog={() => unlogHabitMutation.mutate({ 
+              ...habit, 
+              date: formattedDate,
+              habit_logs: habit.habit_logs?.filter((log: any) => 
+                log.date === formattedDate && log.status === 'completed'
+              )
+            })}
           />
         </div>
       </CardContent>
