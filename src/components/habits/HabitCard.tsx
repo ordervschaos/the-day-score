@@ -41,7 +41,10 @@ export const HabitCard = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={onUnlog}
+              onClick={(e) => {
+                e.stopPropagation();
+                onUnlog?.();
+              }}
               className={cn(
                 "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
                 isCompleted && "hover:bg-green-500/20"
@@ -53,7 +56,10 @@ export const HabitCard = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onLog}
+            onClick={(e) => {
+              e.stopPropagation();
+              onLog();
+            }}
             className={cn(
               "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
               isCompleted && "hover:bg-green-500/20"
@@ -69,7 +75,10 @@ export const HabitCard = ({
       <Button
         variant="ghost"
         size="sm"
-        onClick={logCount > 0 ? onUnlog : onLog}
+        onClick={(e) => {
+          e.stopPropagation();
+          logCount > 0 ? onUnlog?.() : onLog();
+        }}
         className={cn(
           "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
           isCompleted && "hover:bg-green-500/20"
@@ -85,15 +94,18 @@ export const HabitCard = ({
   }
   
   return (
-    <Card className={cn(
-      "overflow-hidden h-[200px] sm:h-[280px] relative group transition-all duration-300",
-      isCompleted && "ring-2 ring-green-500/50"
-    )}>
+    <Card 
+      className={cn(
+        "overflow-hidden h-[200px] sm:h-[280px] relative group transition-all duration-300 cursor-pointer",
+        isCompleted && "ring-2 ring-green-500/50"
+      )}
+      onClick={() => navigate(`/habits/${id}`)}
+    >
       <div 
         className={cn(
           "absolute inset-0",
           coverImage ? 'bg-cover bg-center' : 'bg-accent flex items-center justify-center',
-          isCompleted && "after:absolute after:inset-0 after:bg-green-500/10 after:backdrop-blur-[1px]"
+          isCompleted && "after:absolute after:inset-0 after:bg-green-500/40 after:backdrop-blur-[1px]"
         )}
         style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
       >
@@ -103,7 +115,7 @@ export const HabitCard = ({
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
       {isCompleted && (
-        <div className="absolute top-2 right-2 bg-green-500/90 text-white rounded-full p-1.5 shadow-lg animate-scale-in">
+        <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1.5 shadow-lg animate-scale-in">
           <Check className="h-4 w-4" />
         </div>
       )}
@@ -117,24 +129,24 @@ export const HabitCard = ({
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           {status && (
             <Badge variant="secondary" className={cn(
-              "text-xs bg-white/20 hover:bg-white/30",
-              isCompleted && "bg-green-500/20 hover:bg-green-500/30"
+              "text-xs bg-white/20 hover:bg-white/30 text-white",
+              isCompleted && "bg-green-500/30 hover:bg-green-500/40"
             )}>
               {status}
             </Badge>
           )}
           {streak && (
             <Badge variant="secondary" className={cn(
-              "text-xs bg-white/20 hover:bg-white/30",
-              isCompleted && "bg-green-500/20 hover:bg-green-500/30"
+              "text-xs bg-white/20 hover:bg-white/30 text-white",
+              isCompleted && "bg-green-500/30 hover:bg-green-500/40"
             )}>
               🔥 {streak}
             </Badge>
           )}
           {logCount > 0 && (
             <Badge variant="secondary" className={cn(
-              "text-xs bg-white/20 hover:bg-white/30",
-              isCompleted && "bg-green-500/20 hover:bg-green-500/30"
+              "text-xs bg-white/20 hover:bg-white/30 text-white font-medium",
+              isCompleted && "bg-green-500/30 hover:bg-green-500/40"
             )}>
               {logCount}x
             </Badge>
@@ -150,7 +162,10 @@ export const HabitCard = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(`/habits/${id}`)}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/habits/${id}`);
+            }}
             className={cn(
               "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
               isCompleted && "hover:bg-green-500/20"
