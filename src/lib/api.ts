@@ -123,14 +123,36 @@ export const fetchJournalEntries = async (limit?: number) => {
 }
 
 export const addJournalEntry = async (entry: Pick<Journal, "content" | "date">) => {
-  const { data, error } = await supabase
+  // First try to get existing entry
+  const { data: existingEntry } = await supabase
     .from("journal")
-    .insert([entry])
     .select()
+    .eq("date", entry.date)
+    .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
     .single()
 
-  if (error) throw error
-  return data
+  if (existingEntry) {
+    // Update existing entry
+    const { data, error } = await supabase
+      .from("journal")
+      .update({ content: entry.content })
+      .eq("id", existingEntry.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  } else {
+    // Insert new entry
+    const { data, error } = await supabase
+      .from("journal")
+      .insert([entry])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
 }
 
 // Habit Groups
