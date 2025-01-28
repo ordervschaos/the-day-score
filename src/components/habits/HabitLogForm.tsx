@@ -17,8 +17,11 @@ interface HabitLogFormProps {
 
 export const HabitLogForm = ({ habit }: HabitLogFormProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  // Use the same date formatting as the index page
-  const formattedDate = selectedDate.toISOString().split('T')[0]
+  
+  // Format date in local timezone
+  const formattedDate = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000))
+    .toISOString()
+    .split('T')[0]
   
   const logHabitMutation = useLogHabit()
   const unlogHabitMutation = useUnlogHabit()
