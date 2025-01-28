@@ -259,4 +259,5 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         </DragDropContext>
       </CardContent>
     </Card>
+  )
 }
