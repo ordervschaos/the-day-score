@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Pencil, Check } from "lucide-react"
+import { Pencil, Check, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Textarea } from "./ui/textarea"
 import { Button } from "./ui/button"
@@ -16,7 +16,9 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const { toast } = useToast()
   const queryClient = useQueryClient()
-  const formattedDate = selectedDate.toISOString().split('T')[0]
+  
+  // Format date consistently for API calls
+  const formattedDate = format(selectedDate, 'yyyy-MM-dd')
 
   // Fetch journal entry for selected date
   const { data: entries } = useQuery({
@@ -42,7 +44,7 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const { mutate: saveEntry } = useMutation({
     mutationFn: async () => {
       return await addJournalEntry({
-        content,
+        content: content.trim(),
         date: formattedDate
       })
     },
@@ -65,32 +67,46 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   })
 
   const handleSave = () => {
-    if (content.trim()) {
-      saveEntry()
-    }
+    saveEntry()
+  }
+
+  const handleClear = () => {
+    setContent("")
+    saveEntry()
   }
 
   return (
     <Card className="bg-background border-none shadow-none">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl">Day's Journal</CardTitle>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => {
-            if (isEditing) {
-              handleSave()
-            } else {
-              setIsEditing(true)
-            }
-          }}
-        >
+        <div className="flex gap-2">
           {isEditing ? (
-            <Check className="h-4 w-4" />
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleClear}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleSave}
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+            </>
           ) : (
-            <Pencil className="h-4 w-4" />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsEditing(true)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
           )}
-        </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <Textarea 
