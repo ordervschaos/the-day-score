@@ -19,26 +19,28 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   
   // Format date consistently for API calls
   const formattedDate = format(selectedDate, 'yyyy-MM-dd')
+  console.log("Formatted date for DB:", formattedDate)
 
   // Fetch journal entry for selected date
-  const { data: entries } = useQuery({
+  const { data: entries, isLoading } = useQuery({
     queryKey: ['journal', formattedDate],
     queryFn: async () => {
       const entries = await fetchJournalEntries(1)
       return entries?.find(entry => entry.date === formattedDate) || null
-    }
+    },
+    staleTime: 0, // Always refetch when date changes
   })
 
   const [content, setContent] = useState("")
 
-  // Update content when entries changes
+  // Update content when entries changes or date changes
   useEffect(() => {
-    if (entries?.content) {
+    if (entries?.content !== undefined) {
       setContent(entries.content)
     } else {
       setContent("")
     }
-  }, [entries?.content])
+  }, [entries?.content, formattedDate])
 
   // Save journal entry mutation
   const { mutate: saveEntry } = useMutation({
@@ -73,6 +75,19 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const handleClear = () => {
     setContent("")
     saveEntry()
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="bg-background border-none shadow-none">
+        <CardHeader>
+          <CardTitle className="text-xl">Day's Journal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[100px] animate-pulse bg-muted rounded-md" />
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
