@@ -166,6 +166,7 @@ export type Database = {
           group_id: number | null
           id: number
           is_archived: boolean | null
+          multiple_per_day: boolean | null
           name: string
           notebooks: number[] | null
           owner_id: string
@@ -184,6 +185,7 @@ export type Database = {
           group_id?: number | null
           id?: never
           is_archived?: boolean | null
+          multiple_per_day?: boolean | null
           name: string
           notebooks?: number[] | null
           owner_id?: string
@@ -202,6 +204,7 @@ export type Database = {
           group_id?: number | null
           id?: never
           is_archived?: boolean | null
+          multiple_per_day?: boolean | null
           name?: string
           notebooks?: number[] | null
           owner_id?: string
