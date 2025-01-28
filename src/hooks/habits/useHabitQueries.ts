@@ -22,7 +22,7 @@ export const useHabits = (formattedDate: string) => {
   return useQuery({
     queryKey: ['habits', formattedDate],
     queryFn: async () => {
-      console.log('Fetching habits...')
+      console.log('Fetching habits for date:', formattedDate)
       const { data, error } = await supabase
         .from('habits')
         .select(`

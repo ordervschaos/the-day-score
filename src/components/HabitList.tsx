@@ -15,8 +15,7 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
   
   // Format date in local timezone
-  const formattedDate = new Date(selectedDate.getTime())
-    .toLocaleDateString('en-CA') // This formats as YYYY-MM-DD in local timezone
+  const formattedDate = selectedDate.toLocaleDateString('en-CA') // This formats as YYYY-MM-DD in local timezone
 
   console.log('Selected date:', selectedDate)
   console.log('Formatted date for DB:', formattedDate)
