@@ -25,8 +25,9 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const { data: entries, isLoading } = useQuery({
     queryKey: ['journal', formattedDate],
     queryFn: async () => {
-      const entries = await fetchJournalEntries(1)
-      return entries?.find(entry => entry.date === formattedDate) || null
+      const entries = await fetchJournalEntries(formattedDate)
+      console.log("Fetched entries for date:", entries)
+      return entries?.[0] || null
     },
     staleTime: 0, // Always refetch when date changes
   })

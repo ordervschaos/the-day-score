@@ -107,18 +107,20 @@ export const toggleHabitLogStatus = async (id: string) => {
 }
 
 // Journal Entries
-export const fetchJournalEntries = async (limit?: number) => {
+export const fetchJournalEntries = async (date?: string) => {
   let query = supabase
     .from("journal")
     .select("*")
-    .order("date", { ascending: false })
-
-  if (limit) {
-    query = query.limit(limit)
+    
+  if (date) {
+    query = query.eq('date', date)
   }
+
+  query = query.order("date", { ascending: false })
 
   const { data, error } = await query
   if (error) throw error
+  console.log("Fetched journal entries:", data)
   return data
 }
 
