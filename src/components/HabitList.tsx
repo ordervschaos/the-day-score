@@ -143,17 +143,25 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
     })
 
     try {
-      // Get all habits in the source group
+      // Get habits in source group
       const sourceHabits = habits
-        .filter((h: any) => h.group_id === sourceGroupId)
-        .sort((a: any, b: any) => a.position - b.position)
+        .filter(h => h.group_id === sourceGroupId)
+        .sort((a, b) => a.position - b.position)
 
-      // Get all habits in the destination group
-      const destinationHabits = sourceGroupId === destinationGroupId
-        ? sourceHabits
-        : habits
-          .filter((h: any) => h.group_id === destinationGroupId)
-          .sort((a: any, b: any) => a.position - b.position)
+      // Get habits in destination group
+      const destinationHabits = habits
+        .filter(h => h.group_id === destinationGroupId)
+        .sort((a, b) => a.position - b.position)
+
+      // Remove habit from source array
+      const [movedHabit] = sourceHabits.splice(source.index, 1)
+
+      // Insert habit into destination array
+      if (sourceGroupId === destinationGroupId) {
+        sourceHabits.splice(destination.index, 0, movedHabit)
+      } else {
+        destinationHabits.splice(destination.index, 0, movedHabit)
+      }
 
       // Prepare updates array
       const updates = []
@@ -165,9 +173,9 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         position: destination.index
       })
 
-      // Update positions in source group
+      // Update positions in source group if different groups
       if (sourceGroupId !== destinationGroupId) {
-        sourceHabits.forEach((habit: any, index: number) => {
+        sourceHabits.forEach((habit, index) => {
           if (habit.id !== habitId && habit.position !== index) {
             updates.push({
               id: habit.id,
@@ -179,13 +187,13 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
       }
 
       // Update positions in destination group
-      destinationHabits.forEach((habit: any, index: number) => {
-        const newPosition = index >= destination.index ? index + 1 : index
-        if (habit.id !== habitId && habit.position !== newPosition) {
+      const habitsToUpdate = sourceGroupId === destinationGroupId ? sourceHabits : destinationHabits
+      habitsToUpdate.forEach((habit, index) => {
+        if (habit.id !== habitId && habit.position !== index) {
           updates.push({
             id: habit.id,
             group_id: destinationGroupId,
-            position: newPosition
+            position: index
           })
         }
       })
@@ -201,19 +209,28 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         return habit
       })
 
-      queryClient.setQueryData(['habits'], optimisticHabits)
+      queryClient.setQueryData(['habits', formattedDate], optimisticHabits)
 
       // Update the database
       for (const update of updates) {
-        await supabase
+        const { error } = await supabase
           .from('habits')
           .update({
             group_id: update.group_id,
             position: update.position
           })
           .eq('id', update.id)
+
+        if (error) throw error
       }
 
+      // Invalidate queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['habits', formattedDate] })
+
+      toast({
+        title: "Success",
+        description: "Habit moved successfully.",
+      })
     } catch (error) {
       console.error('Error updating positions:', error)
       toast({
@@ -221,7 +238,7 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         description: "Failed to update positions. Please try again.",
         variant: "destructive"
       })
-      queryClient.invalidateQueries({ queryKey: ['habits'] })
+      queryClient.invalidateQueries({ queryKey: ['habits', formattedDate] })
     }
   }
 
