@@ -1,19 +1,17 @@
 import { useState, useEffect } from "react"
-import { Pencil, Check, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Textarea } from "./ui/textarea"
-import { Button } from "./ui/button"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { addJournalEntry, fetchJournalEntries } from "@/lib/api"
 import { format } from "date-fns"
 import { useToast } from "./ui/use-toast"
+import { useDebounce } from "@/hooks/use-debounce"
 
 interface JournalEntryProps {
   selectedDate: Date;
 }
 
 export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
-  const [isEditing, setIsEditing] = useState(false)
   const { toast } = useToast()
   const queryClient = useQueryClient()
   
@@ -33,6 +31,7 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   })
 
   const [content, setContent] = useState("")
+  const debouncedContent = useDebounce(content, 1000) // Debounce content changes by 1 second
 
   // Update content when entries changes or date changes
   useEffect(() => {
@@ -53,11 +52,6 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['journal'] })
-      setIsEditing(false)
-      toast({
-        title: "Journal saved",
-        description: "Your journal entry has been saved successfully."
-      })
     },
     onError: (error) => {
       console.error('Error saving journal entry:', error)
@@ -69,23 +63,21 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
     }
   })
 
-  const handleSave = () => {
-    saveEntry()
-  }
-
-  const handleClear = () => {
-    setContent("")
-    saveEntry()
-  }
+  // Auto-save effect
+  useEffect(() => {
+    if (debouncedContent !== entries?.content) {
+      saveEntry()
+    }
+  }, [debouncedContent])
 
   if (isLoading) {
     return (
       <Card className="bg-background border-none shadow-none">
         <CardHeader>
-          <CardTitle className="text-xl">Day's Journal</CardTitle>
+          <CardTitle className="text-xl">Journal</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[100px] animate-pulse bg-muted rounded-md" />
+          <div className="h-[200px] animate-pulse bg-muted rounded-md" />
         </CardContent>
       </Card>
     )
@@ -93,44 +85,15 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
 
   return (
     <Card className="bg-background border-none shadow-none">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-xl">Day's Journal</CardTitle>
-        <div className="flex gap-2">
-          {isEditing ? (
-            <>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleClear}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleSave}
-              >
-                <Check className="h-4 w-4" />
-              </Button>
-            </>
-          ) : (
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsEditing(true)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+      <CardHeader>
+        <CardTitle className="text-xl">Journal</CardTitle>
       </CardHeader>
       <CardContent>
         <Textarea 
-          placeholder="Write about your day. Write about writing. Write about anything."
-          className="min-h-[100px] resize-none"
+          placeholder="Write about your day..."
+          className="min-h-[200px] resize-none text-base leading-relaxed focus-visible:ring-1"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          readOnly={!isEditing}
         />
       </CardContent>
     </Card>
