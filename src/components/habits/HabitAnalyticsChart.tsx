@@ -91,14 +91,14 @@ export const HabitAnalyticsChart = ({ habitId }: HabitAnalyticsChartProps) => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col space-y-4">
           <CardTitle>Analytics</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
             <Select
               value={timeframe}
               onValueChange={handleTimeframeChange}
             >
-              <SelectTrigger className="w-[120px]">
+              <SelectTrigger className="w-full sm:w-[120px]">
                 <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
               <SelectContent>
@@ -110,6 +110,7 @@ export const HabitAnalyticsChart = ({ habitId }: HabitAnalyticsChartProps) => {
             <DateRangePicker
               value={dateRange}
               onChange={setDateRange}
+              className="w-full sm:w-auto"
             />
           </div>
         </div>
