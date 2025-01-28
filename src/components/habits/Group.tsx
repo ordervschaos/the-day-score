@@ -32,7 +32,7 @@ export const Group = ({
 }: GroupProps) => {
   return (
     <Card>
-      <CardHeader className="py-3">
+      <CardHeader className="py-3 pl-2 md:pl-6">
         <div className="flex items-center">
           <Button
             variant="ghost"
