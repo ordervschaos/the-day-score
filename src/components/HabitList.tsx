@@ -153,9 +153,11 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         .sort((a, b) => a.position - b.position)
 
       // Get habits in destination group
-      const destinationHabits = habits
-        .filter(h => h.group_id === destinationGroupId)
-        .sort((a, b) => a.position - b.position)
+      const destinationHabits = sourceGroupId === destinationGroupId
+        ? sourceHabits // If same group, use source habits
+        : habits
+            .filter(h => h.group_id === destinationGroupId)
+            .sort((a, b) => a.position - b.position)
 
       // Remove habit from source array
       const [movedHabit] = sourceHabits.splice(source.index, 1)
@@ -180,20 +182,18 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
       // Update positions in source group if different groups
       if (sourceGroupId !== destinationGroupId) {
         sourceHabits.forEach((habit, index) => {
-          if (habit.id !== habitId && habit.position !== index) {
-            updates.push({
-              id: habit.id,
-              group_id: sourceGroupId,
-              position: index
-            })
-          }
+          updates.push({
+            id: habit.id,
+            group_id: sourceGroupId,
+            position: index
+          })
         })
       }
 
       // Update positions in destination group
       const habitsToUpdate = sourceGroupId === destinationGroupId ? sourceHabits : destinationHabits
       habitsToUpdate.forEach((habit, index) => {
-        if (habit.id !== habitId && habit.position !== index) {
+        if (habit.id !== habitId) {
           updates.push({
             id: habit.id,
             group_id: destinationGroupId,
