@@ -10,7 +10,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "./ui/popover"
-import { useState } from "react"
 
 interface DayScoreProps {
   selectedDate: Date;
@@ -18,7 +17,7 @@ interface DayScoreProps {
 }
 
 export const DayScore = ({ selectedDate, onDateChange }: DayScoreProps) => {
-  const formattedDate = selectedDate.toISOString().split('T')[0]
+  const formattedDate = selectedDate.toLocaleDateString('en-CA')
 
   const { data: habitLogs } = useQuery({
     queryKey: ['habit-logs', formattedDate],
@@ -50,7 +49,7 @@ export const DayScore = ({ selectedDate, onDateChange }: DayScoreProps) => {
     onDateChange(addDays(selectedDate, 1))
   }
 
-  const isToday = formattedDate === new Date().toISOString().split('T')[0]
+  const isToday = formattedDate === new Date().toLocaleDateString('en-CA')
 
   return (
     <Card className="bg-background border-none shadow-none">
