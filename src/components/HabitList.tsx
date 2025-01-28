@@ -103,15 +103,18 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         queryClient.setQueryData(['habit-groups'], reorderedGroups)
 
         // Update the database
-        for (const update of updates) {
-          await supabase
+        const promises = updates.map(update => 
+          supabase
             .from('habit_groups')
             .update({ position: update.position })
             .eq('id', update.id)
-        }
+        )
 
-        // Invalidate and refetch to ensure consistency
-        queryClient.invalidateQueries({ queryKey: ['habit-groups'] })
+        await Promise.all(promises)
+        toast({
+          title: "Success",
+          description: "Group order updated successfully.",
+        })
       } catch (error) {
         console.error('Error updating group positions:', error)
         toast({
@@ -119,6 +122,7 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
           description: "Failed to update group positions. Please try again.",
           variant: "destructive"
         })
+        // Revert optimistic update on error
         queryClient.invalidateQueries({ queryKey: ['habit-groups'] })
       }
       return
@@ -200,7 +204,7 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
 
       console.log('Position updates:', updates)
 
-      // Optimistically update the cache
+      // Create optimistic update
       const optimisticHabits = habits.map(habit => {
         const update = updates.find(u => u.id === habit.id)
         if (update) {
@@ -209,24 +213,22 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         return habit
       })
 
+      // Apply optimistic update
       queryClient.setQueryData(['habits', formattedDate], optimisticHabits)
 
       // Update the database
-      for (const update of updates) {
-        const { error } = await supabase
+      const promises = updates.map(update => 
+        supabase
           .from('habits')
           .update({
             group_id: update.group_id,
             position: update.position
           })
           .eq('id', update.id)
+      )
 
-        if (error) throw error
-      }
-
-      // Invalidate queries to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ['habits', formattedDate] })
-
+      await Promise.all(promises)
+      
       toast({
         title: "Success",
         description: "Habit moved successfully.",
@@ -238,6 +240,7 @@ export const HabitList = ({ selectedDate }: HabitListProps) => {
         description: "Failed to update positions. Please try again.",
         variant: "destructive"
       })
+      // Revert optimistic update on error
       queryClient.invalidateQueries({ queryKey: ['habits', formattedDate] })
     }
   }
