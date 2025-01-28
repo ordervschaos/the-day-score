@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Check, Minus, Plus, Settings } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 interface HabitCardProps {
   id: number
@@ -32,6 +33,16 @@ export const HabitCard = ({
 }: HabitCardProps) => {
   const navigate = useNavigate()
   const isCompleted = logCount > 0
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false)
+  
+  const handleButtonClick = (callback: () => void) => {
+    if (!isButtonDisabled) {
+      setIsButtonDisabled(true)
+      callback()
+      // Re-enable after a short delay to prevent double-clicks
+      setTimeout(() => setIsButtonDisabled(false), 500)
+    }
+  }
   
   const renderActionButton = () => {
     if (isMultiplePerDay) {
@@ -40,32 +51,34 @@ export const HabitCard = ({
           {logCount > 0 && (
             <Button
               variant="ghost"
-              size="sm"
+              size="lg"
+              disabled={isButtonDisabled}
               onClick={(e) => {
                 e.stopPropagation();
-                onUnlog?.();
+                handleButtonClick(onUnlog || (() => {}));
               }}
               className={cn(
-                "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
+                "h-8 w-8 sm:h-10 sm:w-10 p-0 text-white hover:bg-white/20",
                 isCompleted && "hover:bg-green-500/20"
               )}
             >
-              <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+              <Minus className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           )}
           <Button
             variant="ghost"
-            size="sm"
+            size="lg"
+            disabled={isButtonDisabled}
             onClick={(e) => {
               e.stopPropagation();
-              onLog();
+              handleButtonClick(onLog);
             }}
             className={cn(
-              "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
+              "h-8 w-8 sm:h-10 sm:w-10 p-0 text-white hover:bg-white/20",
               isCompleted && "hover:bg-green-500/20"
             )}
           >
-            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
       )
@@ -74,20 +87,22 @@ export const HabitCard = ({
     return (
       <Button
         variant="ghost"
-        size="sm"
+        size="lg"
+        disabled={isButtonDisabled}
         onClick={(e) => {
           e.stopPropagation();
-          logCount > 0 ? onUnlog?.() : onLog();
+          handleButtonClick(logCount > 0 ? (onUnlog || (() => {})) : onLog);
         }}
         className={cn(
-          "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
-          isCompleted && "hover:bg-green-500/20"
+          "h-8 w-8 sm:h-10 sm:w-10 p-0 text-white hover:bg-white/20 transition-all duration-200",
+          isCompleted && "hover:bg-green-500/20",
+          "focus:ring-2 focus:ring-white/50"
         )}
       >
         {logCount > 0 ? (
-          <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+          <Minus className="h-4 w-4 sm:h-5 sm:w-5" />
         ) : (
-          <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+          <Check className="h-4 w-4 sm:h-5 sm:w-5" />
         )}
       </Button>
     )
@@ -161,17 +176,17 @@ export const HabitCard = ({
           {renderActionButton()}
           <Button
             variant="ghost"
-            size="sm"
+            size="lg"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/habits/${id}`);
             }}
             className={cn(
-              "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
+              "h-8 w-8 sm:h-10 sm:w-10 p-0 text-white hover:bg-white/20",
               isCompleted && "hover:bg-green-500/20"
             )}
           >
-            <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
       </CardContent>
