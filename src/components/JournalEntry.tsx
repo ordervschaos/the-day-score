@@ -36,7 +36,7 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   // Prevent overwriting input while user is typing
   useEffect(() => {
     if (!isTyping.current && entries?.content !== undefined && entries.content !== content) {
-      setContent(entries.content)
+      setContent(entries.content || "")
     }
   }, [entries?.content, formattedDate])
 
@@ -44,12 +44,12 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const { mutate: saveEntry } = useMutation({
     mutationFn: async () => {
       return await addJournalEntry({
-        content: content.trim(),
+        content: content.trim() || null, // Set to null if empty
         date: formattedDate
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['journal', formattedDate] }) // Scope invalidation to specific date
+      queryClient.invalidateQueries({ queryKey: ['journal', formattedDate] })
     },
     onError: (error) => {
       toast({
@@ -67,7 +67,7 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
       return
     }
 
-    if (debouncedContent.trim() && debouncedContent !== entries?.content) {
+    if (debouncedContent !== entries?.content) {
       saveEntry()
     }
   }, [debouncedContent])
