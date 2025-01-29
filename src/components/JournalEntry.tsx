@@ -31,7 +31,7 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   })
 
   const [content, setContent] = useState("")
-  const debouncedContent = useDebounce(content, 1000) // Debounce content changes by 1 second
+  const debouncedContent = useDebounce(content, 300) // Reduced debounce to 300ms
 
   // Update content when entries changes or date changes
   useEffect(() => {
