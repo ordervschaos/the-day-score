@@ -15,6 +15,7 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const firstRender = useRef(true) // Track first render
+  const isTyping = useRef(false) // Track if the user is actively typing
 
   // Format date consistently for API calls
   const formattedDate = format(selectedDate, 'yyyy-MM-dd')
@@ -32,9 +33,9 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const [content, setContent] = useState("")
   const debouncedContent = useDebounce(content, 300)
 
-  // Update content when fetched entries change
+  // Prevent overwriting input while user is typing
   useEffect(() => {
-    if (entries?.content !== undefined && entries.content !== content) {
+    if (!isTyping.current && entries?.content !== undefined && entries.content !== content) {
       setContent(entries.content)
     }
   }, [entries?.content, formattedDate])
@@ -65,24 +66,11 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
       firstRender.current = false // Skip first render
       return
     }
-    
+
     if (debouncedContent.trim() && debouncedContent !== entries?.content) {
       saveEntry()
     }
   }, [debouncedContent])
-
-  if (isLoading) {
-    return (
-      <Card className="bg-background border-none shadow-none">
-        <CardHeader>
-          <CardTitle className="text-xl">Journal</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[200px] animate-pulse bg-muted rounded-md" />
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <Card className="bg-background border-none shadow-none">
@@ -94,7 +82,13 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
           placeholder="Write about your day..."
           className="min-h-[200px] resize-none text-base leading-relaxed focus-visible:ring-1"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            isTyping.current = true // Mark as typing
+            setContent(e.target.value)
+          }}
+          onBlur={() => {
+            isTyping.current = false // Reset when user stops typing
+          }}
         />
       </CardContent>
     </Card>
