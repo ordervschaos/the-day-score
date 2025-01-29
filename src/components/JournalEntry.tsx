@@ -33,15 +33,12 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const [content, setContent] = useState("")
   const debouncedContent = useDebounce(content, 300) // Reduced debounce to 300ms
 
-  // Update content when entries changes or date changes
+  // Update content when entries changes
   useEffect(() => {
-    console.log('in useEffect>entries',entries)
     if (entries?.content !== undefined) {
       setContent(entries.content)
-    } else {
-      setContent("")
     }
-  }, [entries?.content, formattedDate])
+  }, [entries?.content])
 
   // Save journal entry mutation
   const { mutate: saveEntry } = useMutation({
