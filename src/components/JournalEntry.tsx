@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Textarea } from "./ui/textarea"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -14,31 +14,30 @@ interface JournalEntryProps {
 export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   const { toast } = useToast()
   const queryClient = useQueryClient()
-  
+  const firstRender = useRef(true) // Track first render
+
   // Format date consistently for API calls
   const formattedDate = format(selectedDate, 'yyyy-MM-dd')
-  console.log("Formatted date for DB:", formattedDate)
 
   // Fetch journal entry for selected date
   const { data: entries, isLoading } = useQuery({
     queryKey: ['journal', formattedDate],
     queryFn: async () => {
-      const entries = await fetchJournalEntries(formattedDate)
-      console.log("Fetched entries for date:", entries)
-      return entries?.[0] || null
+      const fetchedEntries = await fetchJournalEntries(formattedDate)
+      return fetchedEntries?.[0] || null
     },
-    staleTime: 0, // Always refetch when date changes
+    staleTime: 0,
   })
 
   const [content, setContent] = useState("")
-  const debouncedContent = useDebounce(content, 300) // Reduced debounce to 300ms
+  const debouncedContent = useDebounce(content, 300)
 
-  // Update content when entries changes
+  // Update content when fetched entries change
   useEffect(() => {
-    if (entries?.content !== undefined) {
+    if (entries?.content !== undefined && entries.content !== content) {
       setContent(entries.content)
     }
-  }, [entries?.content])
+  }, [entries?.content, formattedDate])
 
   // Save journal entry mutation
   const { mutate: saveEntry } = useMutation({
@@ -49,10 +48,9 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['journal'] })
+      queryClient.invalidateQueries({ queryKey: ['journal', formattedDate] }) // Scope invalidation to specific date
     },
     onError: (error) => {
-      console.error('Error saving journal entry:', error)
       toast({
         title: "Error",
         description: "Failed to save your journal entry. Please try again.",
@@ -63,10 +61,12 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
 
   // Auto-save effect
   useEffect(() => {
-    if (debouncedContent !== entries?.content) {
-      console.log('entries?.content',entries?.content)
-      console.log('debouncedContent',debouncedContent)
-      
+    if (firstRender.current) {
+      firstRender.current = false // Skip first render
+      return
+    }
+    
+    if (debouncedContent.trim() && debouncedContent !== entries?.content) {
       saveEntry()
     }
   }, [debouncedContent])
