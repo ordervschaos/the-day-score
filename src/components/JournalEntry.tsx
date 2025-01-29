@@ -35,6 +35,7 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
 
   // Update content when entries changes or date changes
   useEffect(() => {
+    console.log('in useEffect>entries',entries)
     if (entries?.content !== undefined) {
       setContent(entries.content)
     } else {
@@ -66,6 +67,9 @@ export const JournalEntry = ({ selectedDate }: JournalEntryProps) => {
   // Auto-save effect
   useEffect(() => {
     if (debouncedContent !== entries?.content) {
+      console.log('entries?.content',entries?.content)
+      console.log('debouncedContent',debouncedContent)
+      
       saveEntry()
     }
   }, [debouncedContent])
