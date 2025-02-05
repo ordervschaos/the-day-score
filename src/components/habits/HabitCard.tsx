@@ -119,7 +119,7 @@ export const HabitCard = ({
         {logCount > 0 ? (
           <Minus className="h-4 w-4 sm:h-5 sm:w-5" />
         ) : (
-          <Check className="h-4 w-4 sm:h-5 sm:w-5" />
+          <Check className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={3} />
         )}
       </Button>
     )
@@ -149,9 +149,18 @@ export const HabitCard = ({
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
       )}
       {isCompleted && (
-        <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1.5 shadow-lg animate-scale-in">
-          <Check className="h-4 w-4" />
-        </div>
+        <>
+          {!isMultiplePerDay && 
+            <div className="absolute text-white top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <Check className="h-16 w-16" strokeWidth={3} />
+            </div>
+          }
+          {isMultiplePerDay && logCount > 0 && (
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <span className="text-5xl font-bold text-white">{logCount}x</span>
+            </div>
+          )}
+        </>
       )}
       <CardContent className="absolute bottom-0 left-0 right-0 p-2 sm:p-4 text-white">
         {coverImage && (
@@ -175,14 +184,6 @@ export const HabitCard = ({
               isCompleted && "bg-green-500/30 hover:bg-green-500/40"
             )}>
               🔥 {streak}
-            </Badge>
-          )}
-          {logCount > 0 && (
-            <Badge variant="secondary" className={cn(
-              "text-xs bg-white/20 hover:bg-white/30 text-white font-medium",
-              isCompleted && "bg-green-500/30 hover:bg-green-500/40"
-            )}>
-              {logCount}x
             </Badge>
           )}
           <Badge variant="outline" className={cn(
