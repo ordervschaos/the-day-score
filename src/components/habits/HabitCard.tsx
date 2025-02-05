@@ -43,6 +43,23 @@ export const HabitCard = ({
       setTimeout(() => setIsButtonDisabled(false), 500)
     }
   }
+
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (!isCompleted) {
+      // If not completed, always log once
+      handleButtonClick(onLog);
+    } else {
+      // If already completed
+      if (isMultiplePerDay) {
+        // For multiple-per-day habits, log more
+        handleButtonClick(onLog);
+      } else {
+        // For once-per-day habits, unlog
+        handleButtonClick(onUnlog || (() => {}));
+      }
+    }
+  }
   
   const renderActionButton = () => {
     if (isMultiplePerDay) {
@@ -114,10 +131,7 @@ export const HabitCard = ({
         "overflow-hidden h-[200px] sm:h-[280px] relative group transition-all duration-300 cursor-pointer",
         isCompleted && "ring-2 ring-green-500/50"
       )}
-      onClick={(e) => {
-        e.stopPropagation();
-        handleButtonClick(onLog);
-      }}
+      onClick={handleCardClick}
     >
       <div 
         className={cn(
