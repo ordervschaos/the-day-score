@@ -114,7 +114,10 @@ export const HabitCard = ({
         "overflow-hidden h-[200px] sm:h-[280px] relative group transition-all duration-300 cursor-pointer",
         isCompleted && "ring-2 ring-green-500/50"
       )}
-      onClick={() => navigate(`/habits/${id}`)}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleButtonClick(onLog);
+      }}
     >
       <div 
         className={cn(
