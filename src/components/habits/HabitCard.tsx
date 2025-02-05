@@ -120,7 +120,7 @@ export const HabitCard = ({
         className={cn(
           "absolute inset-0",
           coverImage ? 'bg-cover bg-center' : 'bg-accent flex items-center justify-center',
-          isCompleted && "after:absolute after:inset-0 after:bg-green-500/40 after:backdrop-blur-[1px]"
+          isCompleted && "after:absolute after:inset-0 after:bg-lime-500/100 after:backdrop-blur-[1px]"
         )}
         style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
       >
@@ -128,7 +128,9 @@ export const HabitCard = ({
           <span className="text-lg sm:text-2xl font-display text-accent-foreground">{title}</span>
         )}
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+      {!isCompleted && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+      )}
       {isCompleted && (
         <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1.5 shadow-lg animate-scale-in">
           <Check className="h-4 w-4" />
