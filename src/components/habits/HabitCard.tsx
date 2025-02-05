@@ -133,6 +133,15 @@ export const HabitCard = ({
       )}
       onClick={handleCardClick}
     >
+      <div className="absolute top-2 left-2 z-10">
+        <Badge variant="outline" className={cn(
+          "text-sm border-white/20 bg-black/20 text-white font-medium",
+          isCompleted && "border-green-300/30 text-green-100"
+        )}>
+          {points}
+        </Badge>
+      </div>
+
       <div 
         className={cn(
           "absolute inset-0",
@@ -186,12 +195,6 @@ export const HabitCard = ({
               🔥 {streak}
             </Badge>
           )}
-          <Badge variant="outline" className={cn(
-            "text-xs border-white/20 text-white",
-            isCompleted && "border-green-300/30 text-green-100"
-          )}>
-            {points}
-          </Badge>
           <div className="flex-1" />
           {renderActionButton()}
           <Button
