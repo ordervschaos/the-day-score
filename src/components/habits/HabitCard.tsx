@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Check, Minus, Plus, Settings, Sparkles } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 
 interface HabitCardProps {
   id: number
@@ -36,7 +36,6 @@ export const HabitCard = ({
   const isCompleted = logCount > 0
   const [isButtonDisabled, setIsButtonDisabled] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
-  const [showCelebration, setShowCelebration] = useState(false)
   
   const handleButtonClick = (callback: () => void) => {
     if (!isButtonDisabled) {
@@ -51,11 +50,7 @@ export const HabitCard = ({
     e.stopPropagation();
     if (!isCompleted) {
       // If not completed, always log once
-      handleButtonClick(() => {
-        onLog();
-        // Trigger celebration effect
-        setShowCelebration(true);
-      });
+      handleButtonClick(onLog);
     } else {
       // If already completed
       if (isMultiplePerDay) {
@@ -67,16 +62,6 @@ export const HabitCard = ({
       }
     }
   }
-  
-  // Reset celebration effect after animation completes
-  useEffect(() => {
-    if (showCelebration) {
-      const timer = setTimeout(() => {
-        setShowCelebration(false);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [showCelebration]);
   
   const renderActionButton = () => {
     if (isMultiplePerDay) {
@@ -162,33 +147,12 @@ export const HabitCard = ({
       className={cn(
         "overflow-hidden h-[140px] sm:h-[180px] relative group transition-all duration-300 cursor-pointer",
         isCompleted ? "ring-2 ring-green-500/50" : "hover:ring-2 hover:ring-white/30 hover:shadow-lg hover:shadow-primary/10",
-        "transform transition-all duration-200 hover:scale-[1.02]",
-        showCelebration && "sparkle"
+        "transform transition-all duration-200 hover:scale-[1.02]"
       )}
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Celebration effect when habit is completed */}
-      {showCelebration && (
-        <>
-          <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none">
-            <div className="celebration-confetti left-1/4 -top-4 w-3 h-3 bg-yellow-300 animate-[celebrate_1s_ease-out]"></div>
-            <div className="celebration-confetti left-2/4 -top-4 w-4 h-4 bg-blue-300 animate-[celebrate_1.1s_ease-out]"></div>
-            <div className="celebration-confetti left-3/4 -top-4 w-3 h-3 bg-pink-300 animate-[celebrate_0.9s_ease-out]"></div>
-            <div className="celebration-confetti left-1/3 -top-4 w-4 h-4 bg-green-300 animate-[celebrate_1.2s_ease-out]"></div>
-            <div className="celebration-confetti left-2/3 -top-4 w-3 h-3 bg-purple-300 animate-[celebrate_0.8s_ease-out]"></div>
-            
-            {/* Add more confetti with different colors and timing */}
-            <div className="celebration-confetti left-[15%] -top-4 w-2 h-2 bg-orange-300 animate-[celebrate_0.7s_ease-out]"></div>
-            <div className="celebration-confetti left-[40%] -top-4 w-3 h-3 bg-indigo-300 animate-[celebrate_1.3s_ease-out]"></div>
-            <div className="celebration-confetti left-[60%] -top-4 w-2 h-2 bg-teal-300 animate-[celebrate_0.8s_ease-out]"></div>
-            <div className="celebration-confetti left-[85%] -top-4 w-3 h-3 bg-red-300 animate-[celebrate_1s_ease-out]"></div>
-          </div>
-          <div className="absolute inset-0 z-10 bg-gradient-to-br from-yellow-500/30 to-purple-500/30 animate-pulse pointer-events-none"></div>
-        </>
-      )}
-
       {/* Sparkle effect for incomplete tasks when hovering */}
       {!isCompleted && isHovering && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 animate-pulse">
