@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Check, Minus, Plus, Settings, Sparkles } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface HabitCardProps {
   id: number
@@ -26,39 +26,55 @@ export const HabitCard = ({
   points, 
   status, 
   streak, 
-  logCount, 
+  logCount: initialLogCount, 
   coverImage,
   isMultiplePerDay = false,
   onLog, 
   onUnlog
 }: HabitCardProps) => {
   const navigate = useNavigate()
-  const isCompleted = logCount > 0
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false)
+  // Local state for optimistic updates
+  const [localLogCount, setLocalLogCount] = useState(initialLogCount)
   const [isHovering, setIsHovering] = useState(false)
   
-  const handleButtonClick = (callback: () => void) => {
-    if (!isButtonDisabled) {
-      setIsButtonDisabled(true)
-      callback()
-      // Re-enable after a short delay to prevent double-clicks
-      setTimeout(() => setIsButtonDisabled(false), 500)
+  // Update local state when props change
+  useEffect(() => {
+    setLocalLogCount(initialLogCount)
+  }, [initialLogCount])
+
+  const isCompleted = localLogCount > 0
+  
+  const handleLogClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    // Optimistic update
+    setLocalLogCount(prev => prev + 1)
+    // Actual API call
+    onLog()
+  }
+
+  const handleUnlogClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (localLogCount > 0) {
+      // Optimistic update
+      setLocalLogCount(prev => Math.max(0, prev - 1))
+      // Actual API call
+      if (onUnlog) onUnlog()
     }
   }
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
+    e.stopPropagation()
     if (!isCompleted) {
       // If not completed, always log once
-      handleButtonClick(onLog);
+      handleLogClick(e)
     } else {
       // If already completed
       if (isMultiplePerDay) {
         // For multiple-per-day habits, log more
-        handleButtonClick(onLog);
+        handleLogClick(e)
       } else {
         // For once-per-day habits, unlog
-        handleButtonClick(onUnlog || (() => {}));
+        handleUnlogClick(e)
       }
     }
   }
@@ -67,15 +83,11 @@ export const HabitCard = ({
     if (isMultiplePerDay) {
       return (
         <div className="flex items-center gap-1">
-          {logCount > 0 && (
+          {localLogCount > 0 && (
             <Button
               variant="ghost"
               size="lg"
-              disabled={isButtonDisabled}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleButtonClick(onUnlog || (() => {}));
-              }}
+              onClick={handleUnlogClick}
               className={cn(
                 "h-6 w-6 sm:h-8 sm:w-8 p-0 text-white hover:bg-white/20",
                 isCompleted && "hover:bg-green-500/20"
@@ -87,11 +99,7 @@ export const HabitCard = ({
           <Button
             variant="ghost"
             size="lg"
-            disabled={isButtonDisabled}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleButtonClick(onLog);
-            }}
+            onClick={handleLogClick}
             className={cn(
               "h-6 w-6 sm:h-8 sm:w-8 p-0 text-white hover:bg-white/20",
               isCompleted && "hover:bg-green-500/20"
@@ -107,10 +115,9 @@ export const HabitCard = ({
       <Button
         variant="ghost"
         size="lg"
-        disabled={isButtonDisabled}
         onClick={(e) => {
-          e.stopPropagation();
-          handleButtonClick(logCount > 0 ? (onUnlog || (() => {})) : onLog);
+          e.stopPropagation()
+          isCompleted ? handleUnlogClick(e) : handleLogClick(e)
         }}
         className={cn(
           "h-6 w-6 sm:h-8 sm:w-8 p-0 text-white hover:bg-white/20 transition-all duration-200",
@@ -118,7 +125,7 @@ export const HabitCard = ({
           "focus:ring-2 focus:ring-white/50"
         )}
       >
-        {logCount > 0 ? (
+        {isCompleted ? (
           <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
         ) : (
           <Check className="h-3 w-3 sm:h-4 sm:w-4" strokeWidth={3} />
@@ -206,9 +213,9 @@ export const HabitCard = ({
               <Check className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={3} />
             </div>
           }
-          {isMultiplePerDay && logCount > 0 && (
+          {isMultiplePerDay && localLogCount > 0 && (
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <span className="text-3xl sm:text-4xl font-bold text-white drop-shadow-md">{logCount}x</span>
+              <span className="text-3xl sm:text-4xl font-bold text-white drop-shadow-md">{localLogCount}x</span>
             </div>
           )}
         </>
@@ -239,7 +246,6 @@ export const HabitCard = ({
             </Badge>
           )}
           <div className="flex-1" />
-          {/* Settings button remains at the bottom right */}
           <Button
             variant="ghost"
             size="lg"
