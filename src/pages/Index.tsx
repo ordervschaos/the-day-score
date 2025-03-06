@@ -58,7 +58,6 @@ const Index = () => {
       <TopNav />
       <FixedNavbar selectedDate={selectedDate} onDateChange={setSelectedDate} />
       <main className="w-full mx-auto py-1 space-y-2 px-1 mt-10">
-        <JournalEntry selectedDate={selectedDate} />
         <HabitList selectedDate={selectedDate} />
       </main>
     </div>

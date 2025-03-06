@@ -50,7 +50,7 @@ export const HabitListHeader = ({
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false)
 
   return (
-    <div className="flex gap-1 mb-2">
+    <div className="flex gap-1 mb-2 w-full">
       <div className="flex gap-1 flex-1">
         <CreateHabitDialog 
           isOpen={isNewHabitOpen}
@@ -75,7 +75,7 @@ export const HabitListHeader = ({
         />
         </div>
 
-      <div className="flex items-center border rounded-md h-7">
+      <div className="flex items-center border rounded-md">
       
         <Toggle
           pressed={viewMode === 'list'}
