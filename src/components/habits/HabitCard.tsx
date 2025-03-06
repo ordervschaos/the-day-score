@@ -173,11 +173,17 @@ export const HabitCard = ({
       {showCelebration && (
         <>
           <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none">
-            <div className="celebration-confetti left-1/4 -top-4 w-4 h-4 bg-yellow-300 rounded-full animate-[celebrate_1s_ease-out]"></div>
-            <div className="celebration-confetti left-2/4 -top-4 w-4 h-4 bg-blue-300 rounded-full animate-[celebrate_1.1s_ease-out]"></div>
-            <div className="celebration-confetti left-3/4 -top-4 w-4 h-4 bg-pink-300 rounded-full animate-[celebrate_0.9s_ease-out]"></div>
-            <div className="celebration-confetti left-1/3 -top-4 w-4 h-4 bg-green-300 rounded-full animate-[celebrate_1.2s_ease-out]"></div>
-            <div className="celebration-confetti left-2/3 -top-4 w-4 h-4 bg-purple-300 rounded-full animate-[celebrate_0.8s_ease-out]"></div>
+            <div className="celebration-confetti left-1/4 -top-4 w-3 h-3 bg-yellow-300 animate-[celebrate_1s_ease-out]"></div>
+            <div className="celebration-confetti left-2/4 -top-4 w-4 h-4 bg-blue-300 animate-[celebrate_1.1s_ease-out]"></div>
+            <div className="celebration-confetti left-3/4 -top-4 w-3 h-3 bg-pink-300 animate-[celebrate_0.9s_ease-out]"></div>
+            <div className="celebration-confetti left-1/3 -top-4 w-4 h-4 bg-green-300 animate-[celebrate_1.2s_ease-out]"></div>
+            <div className="celebration-confetti left-2/3 -top-4 w-3 h-3 bg-purple-300 animate-[celebrate_0.8s_ease-out]"></div>
+            
+            {/* Add more confetti with different colors and timing */}
+            <div className="celebration-confetti left-[15%] -top-4 w-2 h-2 bg-orange-300 animate-[celebrate_0.7s_ease-out]"></div>
+            <div className="celebration-confetti left-[40%] -top-4 w-3 h-3 bg-indigo-300 animate-[celebrate_1.3s_ease-out]"></div>
+            <div className="celebration-confetti left-[60%] -top-4 w-2 h-2 bg-teal-300 animate-[celebrate_0.8s_ease-out]"></div>
+            <div className="celebration-confetti left-[85%] -top-4 w-3 h-3 bg-red-300 animate-[celebrate_1s_ease-out]"></div>
           </div>
           <div className="absolute inset-0 z-10 bg-gradient-to-br from-yellow-500/30 to-purple-500/30 animate-pulse pointer-events-none"></div>
         </>
