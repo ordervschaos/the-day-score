@@ -1,3 +1,4 @@
+
 import { HabitCard } from "./HabitCard"
 import { GripVertical } from "lucide-react"
 import { Draggable } from "react-beautiful-dnd"
@@ -12,7 +13,7 @@ interface HabitGridProps {
 
 export const HabitGrid = ({ habits, isReorderMode, onLog, onUnlog, selectedDate }: HabitGridProps) => {
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1 sm:gap-2">
       {habits.map((habit, index) => (
         <Draggable
           key={habit.id}
@@ -25,7 +26,7 @@ export const HabitGrid = ({ habits, isReorderMode, onLog, onUnlog, selectedDate 
               ref={provided.innerRef}
               {...provided.draggableProps}
             >
-              <div className={isReorderMode ? "flex items-center gap-2" : ""}>
+              <div className={isReorderMode ? "flex items-center gap-1" : ""}>
                 {isReorderMode && (
                   <div {...provided.dragHandleProps}>
                     <GripVertical className="h-4 w-4 text-muted-foreground" />

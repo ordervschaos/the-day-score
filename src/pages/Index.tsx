@@ -1,3 +1,4 @@
+
 import { DayScore } from "@/components/DayScore"
 import { HabitList } from "@/components/HabitList"
 import { JournalEntry } from "@/components/JournalEntry"
@@ -53,10 +54,10 @@ const Index = () => {
   })
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background w-screen overflow-x-hidden">
       <TopNav />
       <FixedNavbar selectedDate={selectedDate} onDateChange={setSelectedDate} />
-      <main className="container mx-auto py-2 space-y-4 max-w-3xl px-1 sm:px-4 sm:py-6 sm:space-y-6 mt-12">
+      <main className="w-full mx-auto py-1 space-y-2 px-1 mt-10">
         <JournalEntry selectedDate={selectedDate} />
         <HabitList selectedDate={selectedDate} />
       </main>

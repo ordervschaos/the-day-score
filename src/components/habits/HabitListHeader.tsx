@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button"
 import { Toggle } from "@/components/ui/toggle"
 import { LayoutGrid, LayoutList, GripHorizontal, Plus, FolderPlus } from "lucide-react"
@@ -25,14 +26,15 @@ const ActionButton = ({ onClick, icon, label }: ActionButtonProps) => {
   return (
     <Button
       variant="outline"
+      size="sm"
       onClick={onClick}
-      className="flex items-center gap-2"
+      className="flex items-center gap-1 px-2 py-1 h-7"
     >
       {icon}
       {isMobile ? (
         <span className="sr-only">{label}</span>
       ) : (
-        <span>{label}</span>
+        <span className="text-xs">{label}</span>
       )}
     </Button>
   )
@@ -48,8 +50,8 @@ export const HabitListHeader = ({
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false)
 
   return (
-    <div className="flex gap-2 mb-4">
-      <div className="flex gap-2 flex-1">
+    <div className="flex gap-1 mb-2">
+      <div className="flex gap-1 flex-1">
         <CreateHabitDialog 
           isOpen={isNewHabitOpen}
           onOpenChange={setIsNewHabitOpen}
@@ -68,28 +70,28 @@ export const HabitListHeader = ({
 
       <ActionButton
           onClick={() => onReorderModeChange(!isReorderMode)}
-          icon={<GripHorizontal className="h-4 w-4" />}
-          label={isReorderMode ? "Done Reordering" : "Reorder"}
+          icon={<GripHorizontal className="h-3 w-3" />}
+          label={isReorderMode ? "Done" : "Reorder"}
         />
         </div>
 
-      <div className="flex items-center border rounded-md">
+      <div className="flex items-center border rounded-md h-7">
       
         <Toggle
           pressed={viewMode === 'list'}
           onPressedChange={() => onViewModeChange('list')}
-          className="rounded-none rounded-l-md"
+          className="rounded-none rounded-l-md h-7 w-7 p-0"
           aria-label="List view"
         >
-          <LayoutList className="h-4 w-4" />
+          <LayoutList className="h-3 w-3" />
         </Toggle>
         <Toggle
           pressed={viewMode === 'card'}
           onPressedChange={() => onViewModeChange('card')}
-          className="rounded-none rounded-r-md"
+          className="rounded-none rounded-r-md h-7 w-7 p-0"
           aria-label="Card view"
         >
-          <LayoutGrid className="h-4 w-4" />
+          <LayoutGrid className="h-3 w-3" />
         </Toggle>
       </div>
     </div>

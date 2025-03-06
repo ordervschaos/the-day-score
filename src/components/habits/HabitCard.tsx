@@ -76,11 +76,11 @@ export const HabitCard = ({
                 handleButtonClick(onUnlog || (() => {}));
               }}
               className={cn(
-                "h-8 w-8 sm:h-10 sm:w-10 p-0 text-white hover:bg-white/20",
+                "h-6 w-6 sm:h-8 sm:w-8 p-0 text-white hover:bg-white/20",
                 isCompleted && "hover:bg-green-500/20"
               )}
             >
-              <Minus className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           )}
           <Button
@@ -92,11 +92,11 @@ export const HabitCard = ({
               handleButtonClick(onLog);
             }}
             className={cn(
-              "h-8 w-8 sm:h-10 sm:w-10 p-0 text-white hover:bg-white/20",
+              "h-6 w-6 sm:h-8 sm:w-8 p-0 text-white hover:bg-white/20",
               isCompleted && "hover:bg-green-500/20"
             )}
           >
-            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
       )
@@ -112,15 +112,15 @@ export const HabitCard = ({
           handleButtonClick(logCount > 0 ? (onUnlog || (() => {})) : onLog);
         }}
         className={cn(
-          "h-8 w-8 sm:h-10 sm:w-10 p-0 text-white hover:bg-white/20 transition-all duration-200",
+          "h-6 w-6 sm:h-8 sm:w-8 p-0 text-white hover:bg-white/20 transition-all duration-200",
           isCompleted && "hover:bg-green-500/20",
           "focus:ring-2 focus:ring-white/50"
         )}
       >
         {logCount > 0 ? (
-          <Minus className="h-4 w-4 sm:h-5 sm:w-5" />
+          <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
         ) : (
-          <Check className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={3} />
+          <Check className="h-3 w-3 sm:h-4 sm:w-4" strokeWidth={3} />
         )}
       </Button>
     )
@@ -129,15 +129,15 @@ export const HabitCard = ({
   return (
     <Card 
       className={cn(
-        "overflow-hidden h-[200px] sm:h-[280px] relative group transition-all duration-300 cursor-pointer",
+        "overflow-hidden h-[140px] sm:h-[180px] relative group transition-all duration-300 cursor-pointer",
         isCompleted && "ring-2 ring-green-500/50"
       )}
       onClick={handleCardClick}
     >
       {/* Points badge (top left) */}
-      <div className="absolute top-2 left-2 z-10">
+      <div className="absolute top-1 left-1 z-10">
         <Badge variant="outline" className={cn(
-          "text-sm border-white/20 bg-black/20 text-white font-medium",
+          "text-xs border-white/20 bg-black/20 text-white font-medium px-1.5 py-0",
           isCompleted && "border-green-300/30 text-green-100"
         )}>
           {points}
@@ -145,7 +145,7 @@ export const HabitCard = ({
       </div>
 
       {/* Action button (top right) */}
-      <div className="absolute top-2 right-2 z-10">
+      <div className="absolute top-1 right-1 z-10">
         {renderActionButton()}
       </div>
 
@@ -158,7 +158,7 @@ export const HabitCard = ({
         style={coverImage ? { backgroundImage: `url(${coverImage})` } : undefined}
       >
         {!coverImage && (
-          <span className="text-lg sm:text-2xl font-display text-accent-foreground">{title}</span>
+          <span className="text-sm sm:text-base font-display text-accent-foreground">{title}</span>
         )}
       </div>
       {!isCompleted && (
@@ -168,27 +168,27 @@ export const HabitCard = ({
         <>
           {!isMultiplePerDay && 
             <div className="absolute text-white top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <Check className="h-16 w-16" strokeWidth={3} />
+              <Check className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={3} />
             </div>
           }
           {isMultiplePerDay && logCount > 0 && (
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <span className="text-5xl font-bold text-white">{logCount}x</span>
+              <span className="text-3xl sm:text-4xl font-bold text-white">{logCount}x</span>
             </div>
           )}
         </>
       )}
-      <CardContent className="absolute bottom-0 left-0 right-0 p-2 sm:p-4 text-white">
+      <CardContent className="absolute bottom-0 left-0 right-0 p-1 sm:p-2 text-white">
         {coverImage && (
           <h3 className={cn(
-            "text-sm sm:text-base font-medium mb-1 sm:mb-2",
+            "text-xs sm:text-sm font-medium mb-0.5 sm:mb-1",
             isCompleted && "text-green-100"
           )}>{title}</h3>
         )}
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+        <div className="flex items-center gap-0.5 sm:gap-1 flex-wrap">
           {status && (
             <Badge variant="secondary" className={cn(
-              "text-xs bg-white/20 hover:bg-white/30 text-white",
+              "text-[10px] px-1 py-0 bg-white/20 hover:bg-white/30 text-white",
               isCompleted && "bg-green-500/30 hover:bg-green-500/40"
             )}>
               {status}
@@ -196,7 +196,7 @@ export const HabitCard = ({
           )}
           {streak && (
             <Badge variant="secondary" className={cn(
-              "text-xs bg-white/20 hover:bg-white/30 text-white",
+              "text-[10px] px-1 py-0 bg-white/20 hover:bg-white/30 text-white",
               isCompleted && "bg-green-500/30 hover:bg-green-500/40"
             )}>
               🔥 {streak}
@@ -212,11 +212,11 @@ export const HabitCard = ({
               navigate(`/habits/${id}`);
             }}
             className={cn(
-              "h-8 w-8 sm:h-10 sm:w-10 p-0 text-white hover:bg-white/20",
+              "h-6 w-6 sm:h-7 sm:w-7 p-0 text-white hover:bg-white/20",
               isCompleted && "hover:bg-green-500/20"
             )}
           >
-            <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </CardContent>
