@@ -2,6 +2,7 @@ import { DayScore } from "@/components/DayScore"
 import { HabitList } from "@/components/HabitList"
 import { JournalEntry } from "@/components/JournalEntry"
 import { TopNav } from "@/components/TopNav"
+import { FixedNavbar } from "@/components/FixedNavbar"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useEffect, useState } from "react"
@@ -54,8 +55,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
-      <main className="container mx-auto py-2 space-y-4 max-w-3xl px-1 sm:px-4 sm:py-6 sm:space-y-6">
-        <DayScore selectedDate={selectedDate} onDateChange={setSelectedDate} />
+      <FixedNavbar selectedDate={selectedDate} onDateChange={setSelectedDate} />
+      <main className="container mx-auto py-2 space-y-4 max-w-3xl px-1 sm:px-4 sm:py-6 sm:space-y-6 mt-12">
         <JournalEntry selectedDate={selectedDate} />
         <HabitList selectedDate={selectedDate} />
       </main>
