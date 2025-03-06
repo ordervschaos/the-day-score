@@ -1,15 +1,14 @@
-
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Check, Minus, Plus, Settings, Sparkles } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 interface HabitCardProps {
   id: number
-  title: string
+  title: string 
   points: number
   status?: string
   streak?: number
@@ -36,29 +35,72 @@ export const HabitCard = ({
   // Local state for optimistic updates
   const [localLogCount, setLocalLogCount] = useState(initialLogCount)
   const [isHovering, setIsHovering] = useState(false)
+  const [isInteracting, setIsInteracting] = useState(false)
+  const interactionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
-  // Update local state when props change
+  // Update local state when props change, but only if we're not in the middle of a user interaction
   useEffect(() => {
-    setLocalLogCount(initialLogCount)
-  }, [initialLogCount])
+    if (!isInteracting) {
+      setLocalLogCount(initialLogCount)
+    }
+  }, [initialLogCount, isInteracting])
+
+  // Set up a cleanup function for the timeout
+  useEffect(() => {
+    return () => {
+      if (interactionTimeoutRef.current) {
+        clearTimeout(interactionTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const isCompleted = localLogCount > 0
   
   const handleLogClick = (e: React.MouseEvent) => {
     e.stopPropagation()
+    
+    // Set interaction flag to prevent external updates during interaction
+    setIsInteracting(true)
+    
+    // Clear any existing timeout
+    if (interactionTimeoutRef.current) {
+      clearTimeout(interactionTimeoutRef.current)
+    }
+    
     // Optimistic update
     setLocalLogCount(prev => prev + 1)
+    
     // Actual API call
     onLog()
+    
+    // Set a timeout to clear the interaction flag
+    interactionTimeoutRef.current = setTimeout(() => {
+      setIsInteracting(false)
+    }, 500) // Allow 500ms for the API call to complete
   }
 
   const handleUnlogClick = (e: React.MouseEvent) => {
     e.stopPropagation()
+    
     if (localLogCount > 0) {
+      // Set interaction flag to prevent external updates during interaction
+      setIsInteracting(true)
+      
+      // Clear any existing timeout
+      if (interactionTimeoutRef.current) {
+        clearTimeout(interactionTimeoutRef.current)
+      }
+      
       // Optimistic update
       setLocalLogCount(prev => Math.max(0, prev - 1))
+      
       // Actual API call
       if (onUnlog) onUnlog()
+      
+      // Set a timeout to clear the interaction flag
+      interactionTimeoutRef.current = setTimeout(() => {
+        setIsInteracting(false)
+      }, 500) // Allow 500ms for the API call to complete
     }
   }
 
@@ -134,7 +176,6 @@ export const HabitCard = ({
     )
   }
   
-  // Generate a vibrant gradient based on the id for cards without cover images
   const getGradient = () => {
     const gradients = [
       "from-purple-500 to-pink-500",
@@ -163,14 +204,12 @@ export const HabitCard = ({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Sparkle effect for incomplete tasks when hovering */}
       {!isCompleted && isHovering && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 animate-pulse">
           <Sparkles className="h-10 w-10 text-yellow-300/70" />
         </div>
       )}
 
-      {/* Points badge (top left) */}
       <div className="absolute top-1 left-1 z-10">
         <Badge variant="outline" className={cn(
           "text-xs border-white/20 bg-black/30 backdrop-blur-sm text-white font-medium px-1.5 py-0",
@@ -180,7 +219,6 @@ export const HabitCard = ({
         </Badge>
       </div>
 
-      {/* Action button (top right) */}
       <div className="absolute top-1 right-1 z-10">
         {renderActionButton()}
       </div>
@@ -201,7 +239,6 @@ export const HabitCard = ({
         )}
       </div>
       
-      {/* Overlay gradient */}
       {!isCompleted && (
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
       )}

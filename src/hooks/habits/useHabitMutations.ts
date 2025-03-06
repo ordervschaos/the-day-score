@@ -28,16 +28,65 @@ export const useLogHabit = () => {
       // Cancel any outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ['habits'] })
       await queryClient.cancelQueries({ queryKey: ['habits', newHabit.id] })
+      await queryClient.cancelQueries({ queryKey: ['habits', newHabit.date] })
       await queryClient.cancelQueries({ queryKey: ['habit-logs', newHabit.date] })
       
-      // Return context for potential rollback
-      return { newHabit }
+      // Snapshot the previous habit data for rollback
+      const previousHabitsData = queryClient.getQueryData(['habits', newHabit.date])
+      
+      // Optimistically update the habit in cache
+      if (previousHabitsData) {
+        queryClient.setQueryData(['habits', newHabit.date], (oldData: any[]) => {
+          return oldData.map(habit => {
+            if (habit.id === newHabit.id) {
+              // Create a new log entry for the optimistic update
+              const newLog = {
+                id: `temp-${Date.now()}`, // Temporary ID
+                habit_id: newHabit.id,
+                date: newHabit.date,
+                status: 'completed'
+              }
+              
+              // Clone the habit and add the new log
+              return {
+                ...habit,
+                habit_logs: [...habit.habit_logs, newLog]
+              }
+            }
+            return habit
+          })
+        })
+      }
+      
+      // Return context with previous data for potential rollback
+      return { previousHabitsData, newHabit }
     },
-    onSuccess: (_, variables) => {
-      // Invalidate both the habits list and the specific habit queries
-      queryClient.invalidateQueries({ queryKey: ['habits'] })
-      queryClient.invalidateQueries({ queryKey: ['habits', variables.id] })
-      queryClient.invalidateQueries({ queryKey: ['habit-logs', variables.date] })
+    onSuccess: (data, variables) => {
+      // We don't need to invalidate queries since we're managing the cache directly
+      // The optimistic update already updated the UI, and we'll merge the actual server response
+      // into our cache to ensure data consistency
+      
+      // Update the cache with the real response data
+      queryClient.setQueryData(['habits', variables.date], (oldData: any[]) => {
+        if (!oldData) return oldData;
+        
+        return oldData.map(habit => {
+          if (habit.id === variables.id) {
+            // Filter out any temporary logs
+            const filteredLogs = habit.habit_logs.filter((log: any) => 
+              !log.id.toString().startsWith('temp-')
+            );
+            
+            // Add the new log with the real ID from the server
+            return {
+              ...habit,
+              habit_logs: [...filteredLogs, data]
+            };
+          }
+          return habit;
+        });
+      });
+      
       toast({
         title: "Success!",
         description: "Habit logged successfully.",
@@ -45,18 +94,29 @@ export const useLogHabit = () => {
     },
     onError: (error, variables, context) => {
       console.error('Error logging habit:', error)
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.newHabit) {
-        // Rollback by invalidating and refetching queries
+      
+      // Roll back to the previous state if we have context
+      if (context?.previousHabitsData) {
+        queryClient.setQueryData(['habits', variables.date], context.previousHabitsData)
+      } else {
+        // Fallback to invalidating queries if we don't have context
         queryClient.invalidateQueries({ queryKey: ['habits'] })
-        queryClient.invalidateQueries({ queryKey: ['habits', context.newHabit.id] })
-        queryClient.invalidateQueries({ queryKey: ['habit-logs', context.newHabit.date] })
+        queryClient.invalidateQueries({ queryKey: ['habits', variables.id] })
+        queryClient.invalidateQueries({ queryKey: ['habit-logs', variables.date] })
       }
+      
       toast({
         title: "Error",
         description: "Failed to log habit. Please try again.",
         variant: "destructive"
       })
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure data is consistent
+      // This is delayed to ensure our UI updates first and then syncs with the server
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['habits'] })
+      }, 300)
     }
   })
 }
@@ -69,27 +129,57 @@ export const useUnlogHabit = () => {
     mutationFn: async (habit: any) => {
       if (!habit.habit_logs?.[0]?.id) throw new Error('No log found to delete')
       
+      // Don't try to delete temporary IDs from the server
+      if (habit.habit_logs[0].id.toString().startsWith('temp-')) {
+        // Just simulate success for temporary IDs
+        return { success: true }
+      }
+      
       const { error } = await supabase
         .from('habit_logs')
         .delete()
         .eq('id', habit.habit_logs[0].id)
 
       if (error) throw error
+      return { success: true }
     },
     onMutate: async (oldHabit) => {
       // Cancel any outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ['habits'] })
       await queryClient.cancelQueries({ queryKey: ['habits', oldHabit.id] })
+      await queryClient.cancelQueries({ queryKey: ['habits', oldHabit.date] })
       await queryClient.cancelQueries({ queryKey: ['habit-logs', oldHabit.date] })
       
-      // Return context for potential rollback
-      return { oldHabit }
+      // Snapshot the previous habit data for rollback
+      const previousHabitsData = queryClient.getQueryData(['habits', oldHabit.date])
+      
+      // Optimistically update the habit in cache
+      if (previousHabitsData) {
+        queryClient.setQueryData(['habits', oldHabit.date], (oldData: any[]) => {
+          return oldData.map(habit => {
+            if (habit.id === oldHabit.id) {
+              // Remove the last log entry
+              const newHabitLogs = [...habit.habit_logs]
+              if (newHabitLogs.length > 0) {
+                newHabitLogs.pop()
+              }
+              
+              // Clone the habit and update logs
+              return {
+                ...habit,
+                habit_logs: newHabitLogs
+              }
+            }
+            return habit
+          })
+        })
+      }
+      
+      // Return context with previous data for potential rollback
+      return { previousHabitsData, oldHabit }
     },
     onSuccess: (_, variables) => {
-      // Invalidate both the habits list and the specific habit queries
-      queryClient.invalidateQueries({ queryKey: ['habits'] })
-      queryClient.invalidateQueries({ queryKey: ['habits', variables.id] })
-      queryClient.invalidateQueries({ queryKey: ['habit-logs', variables.date] })
+      // We don't need to invalidate immediately since we're managing the cache directly
       toast({
         title: "Success!",
         description: "Habit unlogged successfully.",
@@ -97,18 +187,29 @@ export const useUnlogHabit = () => {
     },
     onError: (error, variables, context) => {
       console.error('Error unlogging habit:', error)
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.oldHabit) {
-        // Rollback by invalidating and refetching queries
+      
+      // Roll back to the previous state if we have context
+      if (context?.previousHabitsData) {
+        queryClient.setQueryData(['habits', variables.date], context.previousHabitsData)
+      } else {
+        // Fallback to invalidating queries if we don't have context
         queryClient.invalidateQueries({ queryKey: ['habits'] })
-        queryClient.invalidateQueries({ queryKey: ['habits', context.oldHabit.id] })
-        queryClient.invalidateQueries({ queryKey: ['habit-logs', context.oldHabit.date] })
+        queryClient.invalidateQueries({ queryKey: ['habits', variables.id] })
+        queryClient.invalidateQueries({ queryKey: ['habit-logs', variables.date] })
       }
+      
       toast({
         title: "Error",
         description: "Failed to unlog habit. Please try again.",
         variant: "destructive"
       })
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure data is consistent
+      // This is delayed to ensure our UI updates first and then syncs with the server
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['habits'] })
+      }, 300)
     }
   })
 }
