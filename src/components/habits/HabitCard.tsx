@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -133,6 +134,7 @@ export const HabitCard = ({
       )}
       onClick={handleCardClick}
     >
+      {/* Points badge (top left) */}
       <div className="absolute top-2 left-2 z-10">
         <Badge variant="outline" className={cn(
           "text-sm border-white/20 bg-black/20 text-white font-medium",
@@ -140,6 +142,11 @@ export const HabitCard = ({
         )}>
           {points}
         </Badge>
+      </div>
+
+      {/* Action button (top right) */}
+      <div className="absolute top-2 right-2 z-10">
+        {renderActionButton()}
       </div>
 
       <div 
@@ -196,7 +203,7 @@ export const HabitCard = ({
             </Badge>
           )}
           <div className="flex-1" />
-          {renderActionButton()}
+          {/* Settings button remains at the bottom right */}
           <Button
             variant="ghost"
             size="lg"
