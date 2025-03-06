@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Toggle } from "@/components/ui/toggle"
-import { LayoutGrid, LayoutList, GripHorizontal, Plus, FolderPlus } from "lucide-react"
+import { LayoutGrid, LayoutList, GripHorizontal, Plus, FolderPlus, Sparkles } from "lucide-react"
 import { CreateHabitDialog } from "./CreateHabitDialog"
 import { CreateFolderDialog } from "./CreateFolderDialog"
 import { useState } from "react"
@@ -28,7 +28,7 @@ const ActionButton = ({ onClick, icon, label }: ActionButtonProps) => {
       variant="outline"
       size="sm"
       onClick={onClick}
-      className="flex items-center gap-1 px-2 py-1 h-7"
+      className="flex items-center gap-1 px-2 py-1 h-7 hover:bg-primary/10 hover:text-primary transition-colors"
     >
       {icon}
       {isMobile ? (
@@ -75,12 +75,12 @@ export const HabitListHeader = ({
         />
         </div>
 
-      <div className="flex items-center border rounded-md">
+      <div className="flex items-center border rounded-md overflow-hidden shadow-sm hover:shadow transition-shadow">
       
         <Toggle
           pressed={viewMode === 'list'}
           onPressedChange={() => onViewModeChange('list')}
-          className="rounded-none rounded-l-md h-7 w-7 p-0"
+          className="rounded-none rounded-l-md h-7 w-7 p-0 data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
           aria-label="List view"
         >
           <LayoutList className="h-3 w-3" />
@@ -88,7 +88,7 @@ export const HabitListHeader = ({
         <Toggle
           pressed={viewMode === 'card'}
           onPressedChange={() => onViewModeChange('card')}
-          className="rounded-none rounded-r-md h-7 w-7 p-0"
+          className="rounded-none rounded-r-md h-7 w-7 p-0 data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
           aria-label="Card view"
         >
           <LayoutGrid className="h-3 w-3" />

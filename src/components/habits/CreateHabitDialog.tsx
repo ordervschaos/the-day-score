@@ -1,8 +1,9 @@
+
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Plus } from "lucide-react"
+import { Plus, Sparkles } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { useCreateHabit } from "@/hooks/habits/useHabitMutations"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -25,14 +26,24 @@ export const CreateHabitDialog = ({ isOpen, onOpenChange }: CreateHabitDialogPro
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <Plus className="h-4 w-4 mr-2" />
-           New Habit
+        <Button 
+          variant="outline" 
+          className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border-primary/10 hover:border-primary/30 transition-all duration-300"
+        >
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <Plus className="h-3.5 w-3.5 text-primary" />
+            {!isMobile && <span>New Habit</span>}
+            {isMobile && <span className="sr-only">New Habit</span>}
+          </div>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Habit</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Create New Habit
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((values) => createHabitMutation.mutate(values))}>
@@ -61,7 +72,12 @@ export const CreateHabitDialog = ({ isOpen, onOpenChange }: CreateHabitDialogPro
                   </FormItem>
                 )}
               />
-              <Button type="submit">Create Habit</Button>
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white transition-all duration-300"
+              >
+                Create Habit
+              </Button>
             </div>
           </form>
         </Form>
