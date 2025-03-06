@@ -146,8 +146,11 @@ export const HabitCard = ({
     <Card 
       className={cn(
         "overflow-hidden h-[140px] sm:h-[180px] relative group transition-all duration-300 cursor-pointer",
-        isCompleted ? "ring-2 ring-green-500/50" : "hover:ring-2 hover:ring-white/30 hover:shadow-lg hover:shadow-primary/10",
-        "transform transition-all duration-200 hover:scale-[1.02]"
+        "transform transition-transform",
+        isCompleted 
+          ? "ring-2 ring-green-500/50" 
+          : "hover:ring-2 hover:ring-white/30 elevation-card",
+        isCompleted ? "shadow-none" : "shadow-lg",
       )}
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovering(true)}
