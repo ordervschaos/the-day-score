@@ -69,24 +69,14 @@ export const useUnlogHabit = () => {
       
       const logId = habit.habit_logs[0].id
       const currentCount = habit.habit_logs[0].count || 1
-      
-      if (currentCount <= 1) {
-        // If count is 1 or less, delete the log entry
-        const { error } = await supabase
-          .from('habit_logs')
-          .delete()
-          .eq('id', logId)
-
-        if (error) throw error
-      } else {
+    
         // If count is greater than 1, decrement it
         const { error } = await supabase
           .from('habit_logs')
-          .update({ count: currentCount - 1 })
+          .update({ count: Math.max(currentCount - 1, 0) })
           .eq('id', logId)
 
         if (error) throw error
-      }
     },
     onSuccess: (_, variables) => {
       // Invalidate both the habits list and the specific habit queries
