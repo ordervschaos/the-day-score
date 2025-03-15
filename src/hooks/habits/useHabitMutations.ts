@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -9,51 +8,35 @@ export const useLogHabit = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (habit: any) => {
-      // Check if there's already a log for this habit on this day
-      const { data: existingLog, error: fetchError } = await supabase
+    mutationFn: async (habit: {id: number, name: string, points: number, date: string}) => {
+      // First check if there's already a log for this habit on this day
+      const { data: existingLog } = await supabase
         .from('habit_logs')
-        .select('id, count')
+        .select('count')
         .eq('habit_id', habit.id)
         .eq('date', habit.date)
         .eq('status', 'completed')
         .single()
+      
+      // Use upsert with the appropriate count value
+      const { data, error } = await supabase
+        .from('habit_logs')
+        .upsert({
+          habit_id: habit.id,
+          name: habit.name,
+          points: habit.points,
+          date: habit.date,
+          status: 'completed',
+          count: existingLog ? existingLog.count + 1 : 1
+        }, {
+          onConflict: 'habit_id,date,status',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single()
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        // PGRST116 is the error code for "no rows returned" which is expected
-        // For any other error, throw it
-        throw fetchError
-      }
-
-      if (existingLog) {
-        // If a log exists, increment the count
-        const { data, error } = await supabase
-          .from('habit_logs')
-          .update({ count: existingLog.count + 1 })
-          .eq('id', existingLog.id)
-          .select()
-          .single()
-
-        if (error) throw error
-        return data
-      } else {
-        // If no log exists, create a new one with count 1
-        const { data, error } = await supabase
-          .from('habit_logs')
-          .insert([{
-            habit_id: habit.id,
-            name: habit.name,
-            points: habit.points,
-            date: habit.date,
-            status: 'completed',
-            count: 1
-          }])
-          .select()
-          .single()
-
-        if (error) throw error
-        return data
-      }
+      if (error) throw error
+      return data
     },
     onSuccess: (_, variables) => {
       // Invalidate both the habits list and the specific habit queries

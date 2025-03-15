@@ -17,7 +17,7 @@ interface HabitCardProps {
   coverImage?: string | null
   isMultiplePerDay?: boolean
   onLog: () => void
-  onUnlog?: () => void
+  onUnlog: () => void
 }
 
 export const HabitCard = ({ 
@@ -42,6 +42,14 @@ export const HabitCard = ({
     debouncedCallback()
   }
 
+  const handleLog = () => {
+    handleButtonClick(onLog)
+  }
+
+  const handleUnlog = () => {
+    handleButtonClick(onUnlog)
+  } 
+
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     if (!isCompleted) {
@@ -54,7 +62,7 @@ export const HabitCard = ({
         handleButtonClick(onLog);
       } else {
         // For once-per-day habits, unlog
-        handleButtonClick(onUnlog || (() => {}));
+        handleButtonClick(onUnlog);
       }
     }
   }
@@ -103,7 +111,7 @@ export const HabitCard = ({
         size="lg"
         onClick={(e) => {
           e.stopPropagation();
-          handleButtonClick(logCount > 0 ? (onUnlog || (() => {})) : onLog);
+          handleButtonClick(logCount > 0 ? handleUnlog : handleLog);
         }}
         className={cn(
           "h-6 w-6 sm:h-8 sm:w-8 p-0 text-white hover:bg-white/20 transition-all duration-200",
