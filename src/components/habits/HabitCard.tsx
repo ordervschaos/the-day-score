@@ -6,7 +6,7 @@ import { Check, Minus, Plus, Settings, Sparkles } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
-
+import { debounce } from "lodash"
 interface HabitCardProps {
   id: number
   title: string
@@ -34,16 +34,12 @@ export const HabitCard = ({
 }: HabitCardProps) => {
   const navigate = useNavigate()
   const isCompleted = logCount > 0
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   
   const handleButtonClick = (callback: () => void) => {
-    if (!isButtonDisabled) {
-      setIsButtonDisabled(true)
-      callback()
-      // Re-enable after a short delay to prevent double-clicks
-      setTimeout(() => setIsButtonDisabled(false), 500)
-    }
+    // debounce the button click
+    const debouncedCallback = debounce(() => callback(), 500)
+    debouncedCallback()
   }
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -71,10 +67,9 @@ export const HabitCard = ({
             <Button
               variant="ghost"
               size="lg"
-              disabled={isButtonDisabled}
               onClick={(e) => {
                 e.stopPropagation();
-                handleButtonClick(onUnlog || (() => {}));
+                handleButtonClick(onUnlog);
               }}
               className={cn(
                 "h-6 w-6 sm:h-8 sm:w-8 p-0 text-white hover:bg-white/20",
@@ -87,7 +82,6 @@ export const HabitCard = ({
           <Button
             variant="ghost"
             size="lg"
-            disabled={isButtonDisabled}
             onClick={(e) => {
               e.stopPropagation();
               handleButtonClick(onLog);
@@ -107,7 +101,6 @@ export const HabitCard = ({
       <Button
         variant="ghost"
         size="lg"
-        disabled={isButtonDisabled}
         onClick={(e) => {
           e.stopPropagation();
           handleButtonClick(logCount > 0 ? (onUnlog || (() => {})) : onLog);
