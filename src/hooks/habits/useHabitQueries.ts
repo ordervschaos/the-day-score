@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 
@@ -30,7 +31,8 @@ export const useHabits = (formattedDate: string) => {
           habit_logs (
             id,
             date,
-            status
+            status,
+            count
           )
         `)
         .eq('is_archived', false)

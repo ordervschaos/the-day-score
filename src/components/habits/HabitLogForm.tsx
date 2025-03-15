@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { HabitCard } from "./HabitCard"
@@ -30,6 +31,11 @@ export const HabitLogForm = ({ habit }: HabitLogFormProps) => {
   console.log('Formatted date:', formattedDate)
   console.log('Current habit logs:', habit.habit_logs)
 
+  // Get log count (0 if no log, or the count value from the log)
+  const logCount = habit.habit_logs?.length 
+    ? (habit.habit_logs[0].count || 0) 
+    : 0
+
   return (
     <Card>
       <CardHeader>
@@ -48,17 +54,12 @@ export const HabitLogForm = ({ habit }: HabitLogFormProps) => {
             id={habit.id}
             title={habit.name}
             points={habit.points}
-            logCount={habit.habit_logs?.filter((log: any) => 
-              log.date === formattedDate && log.status === 'completed'
-            ).length || 0}
+            logCount={logCount}
             coverImage={habit.cover_image}
             isMultiplePerDay={habit.multiple_per_day}
             onLog={() => logHabitMutation.mutate({ 
               ...habit, 
-              date: formattedDate,
-              habit_logs: habit.habit_logs?.filter((log: any) => 
-                log.date === formattedDate && log.status === 'completed'
-              )
+              date: formattedDate
             })}
             onUnlog={() => unlogHabitMutation.mutate({ 
               ...habit, 

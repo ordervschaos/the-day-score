@@ -106,6 +106,7 @@ export type Database = {
       }
       habit_logs: {
         Row: {
+          count: number
           created_at: string | null
           date: string | null
           details: Json | null
@@ -120,6 +121,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          count?: number
           created_at?: string | null
           date?: string | null
           details?: Json | null
@@ -134,6 +136,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          count?: number
           created_at?: string | null
           date?: string | null
           details?: Json | null

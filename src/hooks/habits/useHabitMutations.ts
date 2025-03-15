@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -9,20 +10,50 @@ export const useLogHabit = () => {
 
   return useMutation({
     mutationFn: async (habit: any) => {
-      const { data, error } = await supabase
+      // Check if there's already a log for this habit on this day
+      const { data: existingLog, error: fetchError } = await supabase
         .from('habit_logs')
-        .insert([{
-          habit_id: habit.id,
-          name: habit.name,
-          points: habit.points,
-          date: habit.date,
-          status: 'completed'
-        }])
-        .select()
+        .select('id, count')
+        .eq('habit_id', habit.id)
+        .eq('date', habit.date)
+        .eq('status', 'completed')
         .single()
 
-      if (error) throw error
-      return data
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        // PGRST116 is the error code for "no rows returned" which is expected
+        // For any other error, throw it
+        throw fetchError
+      }
+
+      if (existingLog) {
+        // If a log exists, increment the count
+        const { data, error } = await supabase
+          .from('habit_logs')
+          .update({ count: existingLog.count + 1 })
+          .eq('id', existingLog.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        return data
+      } else {
+        // If no log exists, create a new one with count 1
+        const { data, error } = await supabase
+          .from('habit_logs')
+          .insert([{
+            habit_id: habit.id,
+            name: habit.name,
+            points: habit.points,
+            date: habit.date,
+            status: 'completed',
+            count: 1
+          }])
+          .select()
+          .single()
+
+        if (error) throw error
+        return data
+      }
     },
     onSuccess: (_, variables) => {
       // Invalidate both the habits list and the specific habit queries
@@ -51,14 +82,28 @@ export const useUnlogHabit = () => {
 
   return useMutation({
     mutationFn: async (habit: any) => {
-      if (!habit.habit_logs?.[0]?.id) throw new Error('No log found to delete')
+      if (!habit.habit_logs?.[0]?.id) throw new Error('No log found to decrease')
       
-      const { error } = await supabase
-        .from('habit_logs')
-        .delete()
-        .eq('id', habit.habit_logs[0].id)
+      const logId = habit.habit_logs[0].id
+      const currentCount = habit.habit_logs[0].count || 1
+      
+      if (currentCount <= 1) {
+        // If count is 1 or less, delete the log entry
+        const { error } = await supabase
+          .from('habit_logs')
+          .delete()
+          .eq('id', logId)
 
-      if (error) throw error
+        if (error) throw error
+      } else {
+        // If count is greater than 1, decrement it
+        const { error } = await supabase
+          .from('habit_logs')
+          .update({ count: currentCount - 1 })
+          .eq('id', logId)
+
+        if (error) throw error
+      }
     },
     onSuccess: (_, variables) => {
       // Invalidate both the habits list and the specific habit queries
